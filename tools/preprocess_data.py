@@ -21,7 +21,8 @@ except ImportError:
 from megatron.tokenizer import build_tokenizer
 from megatron.data import indexed_dataset
 from typing import Any
-
+import csv
+import fcntl
 
 # https://stackoverflow.com/questions/33139531/preserve-empty-lines-with-nltks-punkt-tokenizer
 class CustomLanguageVars(nltk.tokenize.punkt.PunktLanguageVars):  # type: ignore
@@ -193,6 +194,11 @@ class Partition(object):
         fin.close()
         builders[key].finalize(output_idx_files[key])
         print(f"Processed Total {total_tokens_processed} tokens", file=sys.stderr)
+        with open(self.args.output_result_total_token_info, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([self.args.input,
+                            "{}_{}_{}".format(output_prefix, key, level),
+                            total_tokens_processed])
 
 
 def get_args() -> argparse.Namespace:
@@ -200,6 +206,8 @@ def get_args() -> argparse.Namespace:
     group = parser.add_argument_group(title='input data')
     group.add_argument('--input', type=str, required=True,
                        help='Path to input JSON')
+    group.add_argument('--output-result-total-token-info', type=str, required=True,
+                       help='Path to output CSV')
     group.add_argument('--json-keys', nargs='+', default=['text'],
                        help='space separate listed of keys to extract from json')
     group.add_argument('--split-sentences', action='store_true',
