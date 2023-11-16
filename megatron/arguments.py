@@ -890,6 +890,11 @@ def _add_training_args(parser):
                        dest='gradient_accumulation_fusion')
     group.add_argument('--expert-parallel', action='store_true',
                        help='Enable expert parallel optimization.')
+    group.add_argument('--use-freeze-parameter', action='store_true',
+                       help="freeze some of the transformer layers' parameters")
+    group.add_argument('--freeze-iteration', type=int, default=None)
+    group.add_argument('--freeze-transformer-layers', type=int, default=0,
+                       help='must be divided by two, exp: 0, 2, 4')
     return parser
 
 
