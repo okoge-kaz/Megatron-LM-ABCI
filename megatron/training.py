@@ -4,7 +4,7 @@
 
 from datetime import datetime
 import math
-from pyexpat import model
+
 import sys
 import time
 import wandb
@@ -43,6 +43,7 @@ from megatron.utils import calc_params_l2_norm
 from megatron.core.pipeline_parallel import get_forward_backward_func
 from megatron.utils import report_memory
 from megatron.model.vision.knn_monitor import compute_feature_bank
+from megatron.freeze import freeze_transformer_layers, unfreeze_all_parameters
 
 
 def print_datetime(string):
@@ -759,6 +760,21 @@ def train(forward_step_func, model, optimizer, opt_param_scheduler,
 
         update_num_microbatches(args.consumed_train_samples)
         args.curr_iteration = iteration
+
+        # freeze transformer layers
+        if args.use_freeze_parameter and args.freeze_iteration >= iteration:
+            freeze_transformer_layers(args=args, model=model[0])
+            print_rank_0(f"DEBUG: freeze : iteration : {iteration}")
+        if args.use_freeze_parameter and args.freeze_iteration + 1 == iteration:
+            unfreeze_all_parameters(model=model[0])
+            print_rank_0(f"DEBUG: un-freeze : iteration : {iteration}")
+
+        if torch.distributed.get_rank() == 0:
+            print_rank_0(f"DEBUG: iteration : {iteration} : model embedding: {model[0].module.module.language_model.embedding.word_embeddings.weight}")
+            print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[0]: {model[0].module.module.language_model.encoder.layers[0].mlp.dense_h_to_4h.weight}")
+            print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[1]: {model[0].module.module.language_model.encoder.layers[1].mlp.dense_h_to_4h.weight}")
+            print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[15]: {model[0].module.module.language_model.encoder.layers[15].mlp.dense_h_to_4h.weight}")
+
         loss_dict, skipped_iter, grad_norm, num_zeros_in_grad = \
             train_step(forward_step_func,
                        train_data_iterator,
