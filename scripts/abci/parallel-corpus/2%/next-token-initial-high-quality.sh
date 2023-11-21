@@ -1,8 +1,8 @@
 #!/bin/bash
-#$ -l rt_AF=4
+#$ -l rt_AF=8
 #$ -l h_rt=11:05:00:00
 #$ -j y
-#$ -o outputs/parallel/4%/
+#$ -o outputs/parallel/2%/
 #$ -cwd
 
 # module load
@@ -70,14 +70,14 @@ WEIGHT_DECAY=0.1
 GRAD_CLIP=1
 
 # model config
-TOKENIZER_MODEL=/bb/llm/gaf51275/jalm/jalm-tokenizer-private/tokenizer/jalm_llama_okazaki_lab_cc_nfkc_16k_aligned_8/merged_tokenizer_sp/jalm_llama.model
-CHECKPOINT_DIR=/bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b-extended/okazaki_lab_cc/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
-CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token-initial/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
+TOKENIZER_MODEL=/bb/llm/gaf51275/llama/huggingface-checkpoint/Llama-2-7b-hf/tokenizer.model
+CHECKPOINT_DIR=/bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
+CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/initial/high-quality/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${CHECKPOINT_SAVE_DIR}
 
 # data config
-DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_nfkc_16k_aligned_8
+DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_original
 
 DATA_PATH=""
 
@@ -98,16 +98,15 @@ DATA_PATH=""
 # DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_falcon_merged_threadripper-3960x_8_text_document"
 
 # parallel corpus
-PRALLEL_DATASET_DIR=/bb/llm/gaf51275/llama/datasets/JParaCrawl3.0
+PRALLEL_DATASET_DIR=/bb/llm/gaf51275/llama/datasets/JParaCrawl3.0/llama-2-tokenizer
 
-DATA_PATH="${DATA_PATH} 3930794675 ${PRALLEL_DATASET_DIR}/default_plain_text_format_text_document"
-# DATA_PATH="${DATA_PATH} 1726752028 ${PRALLEL_DATASET_DIR}/highquality_plain_text_format_text_document"
+# DATA_PATH="${DATA_PATH} 5623003905 ${PRALLEL_DATASET_DIR}/default_plain_text_format_text_document"
+DATA_PATH="${DATA_PATH} 2487646478 ${PRALLEL_DATASET_DIR}/highquality_plain_text_format_text_document"
 
-# default_plain_text_format_text_document の場合, 約1000iteration で1epoch (正確には、937iteration)
-# highquality_plain_text_format_text_document 412iteration で 1epoch
+# highquality_plain_text_format_text_document 593 iteration で 1 epoch
 
 # job name
-JOB_NAME="llama-2-7b-base-extended-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}-parallel-corpus-4%-next-token-initial"
+JOB_NAME="llama-2-7b-base-parallel-corpus-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}-2%-next-token-initial-high-quality"
 
 # --norm-epsilon 1e-5 : conifg.json (RMS norm)
 
@@ -162,7 +161,7 @@ mpirun -np $NUM_GPUS \
   --adam-beta1 0.9 \
   --adam-beta2 0.95 \
   --log-interval 1 \
-  --save-interval 500 \
+  --save-interval 593 \
   --eval-interval 100 \
   --eval-iters 10 \
   --bf16 \
