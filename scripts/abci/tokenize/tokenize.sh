@@ -17,9 +17,9 @@ cd /bb/llm/gaf51275/llama/Megatron-LM-freeze
 source .env/bin/activate
 
 DATASET_DIR=/bb/llm/gaf51275/jalm/JParaCrawl3.0
-OUTPUT_DIR=/bb/llm/gaf51275/llama/datasets/JParaCrawl3.0
+OUTPUT_DIR=/bb/llm/gaf51275/llama/datasets/JParaCrawl3.0/llama-2-tokenizer
 
-TOKENIZER_MODEL=/bb/llm/gaf51275/jalm/jalm-tokenizer-private/tokenizer/jalm_llama_okazaki_lab_cc_nfkc_16k_aligned_8/merged_tokenizer_sp/jalm_llama.model
+TOKENIZER_MODEL=/bb/llm/gaf51275/llama/huggingface-checkpoint/Llama-2-7b-hf/tokenizer.model
 
 mkdir -p ${OUTPUT_DIR}
 
