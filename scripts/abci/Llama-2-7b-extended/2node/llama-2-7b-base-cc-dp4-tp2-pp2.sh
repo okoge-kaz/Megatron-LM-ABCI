@@ -105,7 +105,7 @@ JOB_NAME="llama-2-7b-base-extended-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-
 # checkpoint load
 if [[ -f "${CHECKPOINT_SAVE_DIR}/latest_checkpointed_iteration.txt" ]]; then
   # resume training
-  CHECKPOINT_ARGS="--load ${CHECKPOINT_SAVE_DIR} --no-load-rng"
+  CHECKPOINT_ARGS="--load ${CHECKPOINT_SAVE_DIR}"
 else
   # first training
   CHECKPOINT_ARGS="--load ${CHECKPOINT_DIR} --no-load-rng --no-load-optim"
