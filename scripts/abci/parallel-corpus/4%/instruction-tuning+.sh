@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -l rt_AF=8
-#$ -l h_rt=11:00:00:00
+#$ -l h_rt=9:00:00:00
 #$ -j y
 #$ -o outputs/parallel/4%/
 #$ -cwd
@@ -111,7 +111,7 @@ JOB_NAME="llama-2-7b-base-parallel-corpus-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODE
 # checkpoint load
 if [[ -f "${CHECKPOINT_SAVE_DIR}/latest_checkpointed_iteration.txt" ]]; then
   # resume training
-  CHECKPOINT_ARGS="--load ${CHECKPOINT_SAVE_DIR} --no-load-rng"
+  CHECKPOINT_ARGS="--load ${CHECKPOINT_SAVE_DIR}"
 else
   # first training
   CHECKPOINT_ARGS="--load ${CHECKPOINT_DIR} --no-load-rng --no-load-optim"
