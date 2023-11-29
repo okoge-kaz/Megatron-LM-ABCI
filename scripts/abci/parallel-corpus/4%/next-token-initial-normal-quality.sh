@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l rt_AF=4
+#$ -l rt_AF=16
 #$ -l h_rt=4:05:00:00
 #$ -j y
 #$ -o outputs/parallel/4%/
@@ -81,25 +81,25 @@ DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_o
 DATA_PATH=""
 
 # ja okazaki lab common crawl
-# DATA_PATH="${DATA_PATH} 10414138710 ${DATASET_DIR}/split_0_text_document"
-# DATA_PATH="${DATA_PATH} 10310340698 ${DATASET_DIR}/split_1_text_document"
-# DATA_PATH="${DATA_PATH} 12327844508 ${DATASET_DIR}/split_2_text_document"
-# DATA_PATH="${DATA_PATH} 16269817007 ${DATASET_DIR}/split_3_text_document"
-# DATA_PATH="${DATA_PATH} 38018807005 ${DATASET_DIR}/split_4_text_document"
+DATA_PATH="${DATA_PATH} 10414138710 ${DATASET_DIR}/split_0_text_document"
+DATA_PATH="${DATA_PATH} 10310340698 ${DATASET_DIR}/split_1_text_document"
+DATA_PATH="${DATA_PATH} 12327844508 ${DATASET_DIR}/split_2_text_document"
+DATA_PATH="${DATA_PATH} 16269817007 ${DATASET_DIR}/split_3_text_document"
+DATA_PATH="${DATA_PATH} 38018807005 ${DATASET_DIR}/split_4_text_document"
 
-# # ja wikipedia
-# DATA_PATH="${DATA_PATH} 2659052072 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
+# ja wikipedia
+DATA_PATH="${DATA_PATH} 2659052072 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
 
-# # en arxiv
-# DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_arxiv_merged_text_document"
+# en arxiv
+DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_arxiv_merged_text_document"
 
-# # en falcon refined-web
-# DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_falcon_merged_threadripper-3960x_8_text_document"
+# en falcon refined-web
+DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_falcon_merged_threadripper-3960x_8_text_document"
 
 # parallel corpus
 PRALLEL_DATASET_DIR=/bb/llm/gaf51275/llama/datasets/JParaCrawl3.0/llama-2-tokenizer
 
-DATA_PATH="${DATA_PATH} 5623003905 ${PRALLEL_DATASET_DIR}/default_plain_text_format_text_document"
+# DATA_PATH="${DATA_PATH} 5623003905 ${PRALLEL_DATASET_DIR}/default_plain_text_format_text_document"
 # DATA_PATH="${DATA_PATH} 2487646478 ${PRALLEL_DATASET_DIR}/highquality_plain_text_format_text_document"
 
 # job name
@@ -158,7 +158,7 @@ mpirun -np $NUM_GPUS \
   --adam-beta1 0.9 \
   --adam-beta2 0.95 \
   --log-interval 1 \
-  --save-interval 1340 \
+  --save-interval 500 \
   --eval-interval 100 \
   --eval-iters 10 \
   --bf16 \
