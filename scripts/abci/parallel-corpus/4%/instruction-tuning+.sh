@@ -1,6 +1,6 @@
 #!/bin/bash
-#$ -l rt_AF=8
-#$ -l h_rt=9:00:00:00
+#$ -l rt_AF=16
+#$ -l h_rt=6:00:00:00
 #$ -j y
 #$ -o outputs/parallel/4%/
 #$ -cwd
