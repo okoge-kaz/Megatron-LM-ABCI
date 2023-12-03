@@ -28,8 +28,17 @@ INPUT_FILE=${DATASET_DIR}/PUBMED.jsonl
 
 python tools/preprocess_data.py \
   --input ${INPUT_FILE} \
-  --json-keys english japanese \
-  --output-prefix ${OUTPUT_DIR}/pubmed_llama_okazaki_lab \
+  --json-keys english \
+  --output-prefix ${OUTPUT_DIR}/pubmed_english \
+  --tokenizer-type Llama2Tokenizer \
+  --tokenizer-model ${TOKENIZER_MODEL} \
+  --append-eod \
+  --workers 64
+
+python tools/preprocess_data.py \
+  --input ${INPUT_FILE} \
+  --json-keys japanese \
+  --output-prefix ${OUTPUT_DIR}/pubmed_japanese \
   --tokenizer-type Llama2Tokenizer \
   --tokenizer-model ${TOKENIZER_MODEL} \
   --append-eod \
