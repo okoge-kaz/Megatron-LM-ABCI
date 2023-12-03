@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l rt_F=1
+#$ -l rt_AF=1
 #$ -l h_rt=5:00:00
 #$ -j y
 #$ -o outputs/change_tp_pp/
@@ -15,7 +15,6 @@ module load nccl/2.16/2.16.2-1
 module load hpcx/2.12
 
 # python virtualenv
-cd /bb/llm/gaf51275/llama/Megatron-LM
 source .env/bin/activate
 
 # distributed settings
@@ -26,8 +25,8 @@ BASE_TENSOR_PARALLEL_SIZE=2  # Llama-2 7B extended
 BASE_PIPELINE_PARALLEL_SIZE=2  # Llama-2 7B extended
 
 # model config
-BASE_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/shuffle/high-quality/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
-TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/shuffle/high-quality/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
+BASE_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/initial/high-quality/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
+TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/initial/high-quality/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${TARGET_CHECKPOINT_DIR}
 
