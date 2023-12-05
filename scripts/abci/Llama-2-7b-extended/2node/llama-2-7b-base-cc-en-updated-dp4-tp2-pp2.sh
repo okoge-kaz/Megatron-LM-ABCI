@@ -1,8 +1,8 @@
 #!/bin/bash
 #$ -l rt_AF=8
-#$ -l h_rt=7:00:00:00
+#$ -l h_rt=5:00:00:00
 #$ -j y
-#$ -o outputs/llama-2-7b-base/2node/
+#$ -o outputs/llama-2-7b-base/4node/en-updated/
 #$ -cwd
 
 # module load
@@ -70,35 +70,38 @@ WEIGHT_DECAY=0.1
 GRAD_CLIP=1
 
 # model config
-TOKENIZER_MODEL=/bb/llm/gaf51275/llama/huggingface-checkpoint/Llama-2-7b-hf/tokenizer.model
-CHECKPOINT_DIR=/bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
-CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/llama-2-7b-base-megatron/okazaki_lab_cc/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
+TOKENIZER_MODEL=/bb/llm/gaf51275/jalm/jalm-tokenizer-private/tokenizer/jalm_llama_okazaki_lab_cc_nfkc_16k_aligned_8/merged_tokenizer_sp/jalm_llama.model
+CHECKPOINT_DIR=/bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b-extended/okazaki_lab_cc/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
+CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/Llama-2-7b-base-extended/okazaki_lab_cc-en-updated/tp2-pp2
 
 mkdir -p ${CHECKPOINT_SAVE_DIR}
 
 # data config
-DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_original
+DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_nfkc_16k_aligned_8
 
 DATA_PATH=""
 
 # ja okazaki lab common crawl
-DATA_PATH="${DATA_PATH} 10414138710 ${DATASET_DIR}/split_0_text_document"
-DATA_PATH="${DATA_PATH} 10310340698 ${DATASET_DIR}/split_1_text_document"
-DATA_PATH="${DATA_PATH} 12327844508 ${DATASET_DIR}/split_2_text_document"
-DATA_PATH="${DATA_PATH} 16269817007 ${DATASET_DIR}/split_3_text_document"
-DATA_PATH="${DATA_PATH} 38018807005 ${DATASET_DIR}/split_4_text_document"
+DATA_PATH="${DATA_PATH} 10605477142 ${DATASET_DIR}/split_0_text_document"
+DATA_PATH="${DATA_PATH} 10464907226 ${DATASET_DIR}/split_1_text_document"
+DATA_PATH="${DATA_PATH} 12465407213 ${DATASET_DIR}/split_2_text_document"
+DATA_PATH="${DATA_PATH} 16446568076 ${DATASET_DIR}/split_3_text_document"
+DATA_PATH="${DATA_PATH} 38345096470 ${DATASET_DIR}/split_4_text_document"
 
 # ja wikipedia
-DATA_PATH="${DATA_PATH} 2659052072 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
+DATA_PATH="${DATA_PATH} 1672543873 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
 
 # en arxiv
 DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_arxiv_merged_text_document"
 
-# en falcon refined-web
-DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_falcon_merged_threadripper-3960x_8_text_document"
+# en wikipedia
+DATA_PATH="${DATA_PATH} 2500000000 ${DATASET_DIR}/en_wiki_merged_text_document"
+
+# en books
+DATA_PATH="${DATA_PATH} 2500000000 ${DATASET_DIR}/books_merged_text_document"
 
 # job name
-JOB_NAME="llama-2-7b-base-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}"
+JOB_NAME="llama-2-7b-base-extended-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}"
 
 # --norm-epsilon 1e-5 : conifg.json (RMS norm)
 

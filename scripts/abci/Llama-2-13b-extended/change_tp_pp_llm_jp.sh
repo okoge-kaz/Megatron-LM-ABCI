@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l rt_F=1
+#$ -l rt_AF=1
 #$ -l h_rt=5:00:00
 #$ -j y
 #$ -o outputs/change_tp_pp/
@@ -22,20 +22,20 @@ source .env/bin/activate
 TARGET_TENSOR_PARALLEL_SIZE=1   # fixed
 TARGET_PIPELINE_PARALLEL_SIZE=1 # fixed
 
-BASE_TENSOR_PARALLEL_SIZE=2  # Llama-2 7B extended
-BASE_PIPELINE_PARALLEL_SIZE=2  # Llama-2 7B extended
+BASE_TENSOR_PARALLEL_SIZE=2  # Llama-2 13B extended
+BASE_PIPELINE_PARALLEL_SIZE=4  # Llama-2 13B extended
 
 # model config
-BASE_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-7b-base-default/okazaki_lab_cc/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
-TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-7b-base-default/okazaki_lab_cc/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
+BASE_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/llama-2-13b-base-extended-megatron/llm-jp/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
+TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/llama-2-13b-base-extended-megatron/llm-jp/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${TARGET_CHECKPOINT_DIR}
 
 # tokenizer config
-TOKENIZER_MODEL=/bb/llm/gaf51275/llama/huggingface-checkpoint/Llama-2-7b-hf/tokenizer.model
+TOKENIZER_MODEL=/bb/llm/gaf51275/jalm/jalm-tokenizer-private/tokenizer/jalm_llama_okazaki_lab_cc_nfkc_16k_aligned_8/merged_tokenizer_sp/jalm_llama.model
 
 # change latest_checkpointed_iteration.txt
-ITERATION=20000
+ITERATION=25000
 echo $ITERATION >${BASE_CHECKPOINT_DIR}/latest_checkpointed_iteration.txt
 
 # convert

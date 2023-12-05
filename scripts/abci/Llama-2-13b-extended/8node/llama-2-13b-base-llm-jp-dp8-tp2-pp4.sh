@@ -1,8 +1,8 @@
 #!/bin/bash
-#$ -l rt_AF=8
-#$ -l h_rt=7:00:00:00
+#$ -l rt_AF=16
+#$ -l h_rt=4:00:00:00
 #$ -j y
-#$ -o outputs/llama-2-7b-base/2node/
+#$ -o outputs/llama-2-13b-base/llm-jp/
 #$ -cwd
 
 # module load
@@ -45,16 +45,16 @@ while read -r line; do
 done <"$SGE_JOB_HOSTLIST" >"$HOSTFILE_NAME"
 
 # model config
-# llama-2-7b: https://huggingface.co/meta-llama/Llama-2-7b-hf/blob/main/config.json
-HIDDEN_SIZE=4096
-FFN_HIDDEN_SIZE=11008 # intermediate size (HuggingFace)
-NUM_LAYERS=32
-NUM_HEADS=32
+# llama-2-13b: https://huggingface.co/meta-llama/Llama-2-13b-hf/blob/main/config.json
+HIDDEN_SIZE=5120
+FFN_HIDDEN_SIZE=13824 # intermediate size (HuggingFace)
+NUM_LAYERS=40
+NUM_HEADS=40
 SEQ_LENGTH=4096
 
 # distributed settings
 TENSOR_PARALLEL_SIZE=2   # fixed
-PIPELINE_PARALLEL_SIZE=2 # num layers 32: Llama-2 7B
+PIPELINE_PARALLEL_SIZE=4 # num layers 40: Llama-2 13B
 DATA_PARALLEL_SIZE=$((${NUM_GPUS} / (${TENSOR_PARALLEL_SIZE} * ${PIPELINE_PARALLEL_SIZE})))
 
 # training config
@@ -70,26 +70,26 @@ WEIGHT_DECAY=0.1
 GRAD_CLIP=1
 
 # model config
-TOKENIZER_MODEL=/bb/llm/gaf51275/llama/huggingface-checkpoint/Llama-2-7b-hf/tokenizer.model
-CHECKPOINT_DIR=/bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
-CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/llama-2-7b-base-megatron/okazaki_lab_cc/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
+TOKENIZER_MODEL=/bb/llm/gaf51275/jalm/jalm-tokenizer-private/tokenizer/jalm_llama_okazaki_lab_cc_nfkc_16k_aligned_8/merged_tokenizer_sp/jalm_llama.model
+CHECKPOINT_DIR=/bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-13b-extended/okazaki_lab_cc/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
+CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/llama-2-13b-base-extended-megatron/llm-jp/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${CHECKPOINT_SAVE_DIR}
 
 # data config
-DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_original
+DATASET_DIR=/groups/gaf51275/llama/datasets/llm-jp-corpus_v1.0.1_okazaki_cc_nfkc_16k_aligned_8
 
 DATA_PATH=""
 
-# ja okazaki lab common crawl
-DATA_PATH="${DATA_PATH} 10414138710 ${DATASET_DIR}/split_0_text_document"
-DATA_PATH="${DATA_PATH} 10310340698 ${DATASET_DIR}/split_1_text_document"
-DATA_PATH="${DATA_PATH} 12327844508 ${DATASET_DIR}/split_2_text_document"
-DATA_PATH="${DATA_PATH} 16269817007 ${DATASET_DIR}/split_3_text_document"
-DATA_PATH="${DATA_PATH} 38018807005 ${DATASET_DIR}/split_4_text_document"
+# ja llm-jp mc4
+DATA_PATH="${DATA_PATH} 23610357658 ${DATASET_DIR}/llm_jp_v101_ja_cc_0_text_document"
+DATA_PATH="${DATA_PATH} 23603672312 ${DATASET_DIR}/llm_jp_v101_ja_cc_1_text_document"
+DATA_PATH="${DATA_PATH} 23604487935 ${DATASET_DIR}/llm_jp_v101_ja_cc_2_text_document"
+DATA_PATH="${DATA_PATH} 17508938222 ${DATASET_DIR}/llm_jp_v101_ja_cc_3_text_document"
 
+DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_nfkc_16k_aligned_8
 # ja wikipedia
-DATA_PATH="${DATA_PATH} 2659052072 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
+DATA_PATH="${DATA_PATH} 1672543873 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
 
 # en arxiv
 DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_arxiv_merged_text_document"
@@ -98,7 +98,7 @@ DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_arxiv_merged_text_docu
 DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_falcon_merged_threadripper-3960x_8_text_document"
 
 # job name
-JOB_NAME="llama-2-7b-base-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}"
+JOB_NAME="llama-2-13b-base-extended-llm-jp-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}"
 
 # --norm-epsilon 1e-5 : conifg.json (RMS norm)
 
@@ -169,8 +169,8 @@ mpirun -np $NUM_GPUS \
   --swiglu \
   --use-flash-attn \
   --recompute-activations \
-  --recompute-granularity "selective" \
+  --recompute-granularity "full" \
   --use-mpi \
   --wandb-name ${JOB_NAME} \
-  --wandb-project "Llama-2-7B" \
+  --wandb-project "Llama-2-13B" \
   --wandb-entity "prj-jalm"
