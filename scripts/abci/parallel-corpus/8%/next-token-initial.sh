@@ -1,8 +1,8 @@
 #!/bin/bash
 #$ -l rt_AF=4
-#$ -l h_rt=4:22:00:00
+#$ -l h_rt=11:05:00:00
 #$ -j y
-#$ -o outputs/llama-2-7b-base/4node/
+#$ -o outputs/parallel/8%/
 #$ -cwd
 
 # module load
@@ -13,7 +13,7 @@ module load nccl/2.16/2.16.2-1
 module load hpcx/2.12
 
 # python virtualenv
-cd /bb/llm/gaf51275/llama/Megatron-LM
+cd /bb/llm/gaf51275/llama/Megatron-LM-freeze
 source .env/bin/activate
 
 # distributed settings
@@ -72,7 +72,7 @@ GRAD_CLIP=1
 # model config
 TOKENIZER_MODEL=/bb/llm/gaf51275/jalm/jalm-tokenizer-private/tokenizer/jalm_llama_okazaki_lab_cc_nfkc_16k_aligned_8/merged_tokenizer_sp/jalm_llama.model
 CHECKPOINT_DIR=/bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b-extended/okazaki_lab_cc/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
-CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/mdx-Llama-2-7b-base-extended/okazaki_lab_cc/tp2-pp2
+CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/8%/next-token-initial/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${CHECKPOINT_SAVE_DIR}
 
@@ -81,31 +81,40 @@ DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_n
 
 DATA_PATH=""
 
-# ja okazaki lab common crawl
-DATA_PATH="${DATA_PATH} 10605477142 ${DATASET_DIR}/split_0_text_document"
-DATA_PATH="${DATA_PATH} 10464907226 ${DATASET_DIR}/split_1_text_document"
-DATA_PATH="${DATA_PATH} 12465407213 ${DATASET_DIR}/split_2_text_document"
-DATA_PATH="${DATA_PATH} 16446568076 ${DATASET_DIR}/split_3_text_document"
-DATA_PATH="${DATA_PATH} 38345096470 ${DATASET_DIR}/split_4_text_document"
+# # ja okazaki lab common crawl
+# DATA_PATH="${DATA_PATH} 10605477142 ${DATASET_DIR}/split_0_text_document"
+# DATA_PATH="${DATA_PATH} 10464907226 ${DATASET_DIR}/split_1_text_document"
+# DATA_PATH="${DATA_PATH} 12465407213 ${DATASET_DIR}/split_2_text_document"
+# DATA_PATH="${DATA_PATH} 16446568076 ${DATASET_DIR}/split_3_text_document"
+# DATA_PATH="${DATA_PATH} 38345096470 ${DATASET_DIR}/split_4_text_document"
 
-# ja wikipedia
-DATA_PATH="${DATA_PATH} 1672543873 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
+# # ja wikipedia
+# DATA_PATH="${DATA_PATH} 1672543873 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
 
-# en arxiv
-DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_arxiv_merged_text_document"
+# # en arxiv
+# DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_arxiv_merged_text_document"
 
-# en falcon refined-web
-DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_falcon_merged_threadripper-3960x_8_text_document"
+# # en falcon refined-web
+# DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_falcon_merged_threadripper-3960x_8_text_document"
+
+# parallel corpus
+PRALLEL_DATASET_DIR=/bb/llm/gaf51275/llama/datasets/JParaCrawl3.0
+
+DATA_PATH="${DATA_PATH} 3930794675 ${PRALLEL_DATASET_DIR}/default_plain_text_format_text_document"
+# DATA_PATH="${DATA_PATH} 1726752028 ${PRALLEL_DATASET_DIR}/highquality_plain_text_format_text_document"
+
+# default_plain_text_format_text_document の場合, 約2000iteration で2epoch (正確には、937 * 2 iteration)
+# highquality_plain_text_format_text_document 412 * 2 iteration で 2epoch
 
 # job name
-JOB_NAME="llama-2-7b-base-extended-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}"
+JOB_NAME="llama-2-7b-base-extended-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}-parallel-corpus-8%-next-token-initial"
 
 # --norm-epsilon 1e-5 : conifg.json (RMS norm)
 
 # checkpoint load
 if [[ -f "${CHECKPOINT_SAVE_DIR}/latest_checkpointed_iteration.txt" ]]; then
   # resume training
-  CHECKPOINT_ARGS="--load ${CHECKPOINT_SAVE_DIR}"
+  CHECKPOINT_ARGS="--load ${CHECKPOINT_SAVE_DIR} --no-load-rng"
 else
   # first training
   CHECKPOINT_ARGS="--load ${CHECKPOINT_DIR} --no-load-rng --no-load-optim"

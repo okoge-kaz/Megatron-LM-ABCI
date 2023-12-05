@@ -1,8 +1,8 @@
 #!/bin/bash
 #$ -l rt_AF=4
-#$ -l h_rt=4:22:00:00
+#$ -l h_rt=4:00:00:00
 #$ -j y
-#$ -o outputs/llama-2-7b-base/4node/
+#$ -o outputs/pubmed/13b/
 #$ -cwd
 
 # module load
@@ -13,7 +13,6 @@ module load nccl/2.16/2.16.2-1
 module load hpcx/2.12
 
 # python virtualenv
-cd /bb/llm/gaf51275/llama/Megatron-LM
 source .env/bin/activate
 
 # distributed settings
@@ -45,60 +44,49 @@ while read -r line; do
 done <"$SGE_JOB_HOSTLIST" >"$HOSTFILE_NAME"
 
 # model config
-# llama-2-7b: https://huggingface.co/meta-llama/Llama-2-7b-hf/blob/main/config.json
-HIDDEN_SIZE=4096
-FFN_HIDDEN_SIZE=11008 # intermediate size (HuggingFace)
-NUM_LAYERS=32
-NUM_HEADS=32
+# llama-2-13b: https://huggingface.co/meta-llama/Llama-2-13b-hf/blob/main/config.json
+HIDDEN_SIZE=5120
+FFN_HIDDEN_SIZE=13824 # intermediate size (HuggingFace)
+NUM_LAYERS=40
+NUM_HEADS=40
 SEQ_LENGTH=4096
 
 # distributed settings
 TENSOR_PARALLEL_SIZE=2   # fixed
-PIPELINE_PARALLEL_SIZE=2 # num layers 32: Llama-2 7B
+PIPELINE_PARALLEL_SIZE=8 # num layers 40: Llama-2 13B
 DATA_PARALLEL_SIZE=$((${NUM_GPUS} / (${TENSOR_PARALLEL_SIZE} * ${PIPELINE_PARALLEL_SIZE})))
 
 # training config
 MICRO_BATCH_SIZE=1
 GLOBAL_BATCH_SIZE=1024
-TRAIN_STEPS=25000 # e.g. llama: 1T tokens / 4M tokens_per_batch = 250000 steps
-# 今回は約100B Tokensなので 1/10
+TRAIN_STEPS=4681
 
 LR=1e-4
 MIN_LR=3.3e-6
-LR_WARMUP_STEPS=1000
+LR_WARMUP_STEPS=200
 WEIGHT_DECAY=0.1
 GRAD_CLIP=1
 
 # model config
 TOKENIZER_MODEL=/bb/llm/gaf51275/jalm/jalm-tokenizer-private/tokenizer/jalm_llama_okazaki_lab_cc_nfkc_16k_aligned_8/merged_tokenizer_sp/jalm_llama.model
-CHECKPOINT_DIR=/bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b-extended/okazaki_lab_cc/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
-CHECKPOINT_SAVE_DIR=/bb/llm/gaf51275/llama/checkpoints/mdx-Llama-2-7b-base-extended/okazaki_lab_cc/tp2-pp2
+
+CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/llama-2-13b-base-extended-megatron/okazaki_lab_cc/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
+CHECKPOINT_SAVE_DIR=/groups/gaf51275/llama/checkpoints/pubmed/llama-2-13b-base-extended-megatron/tp${TENSOR_PARALLEL_SIZE}-pp${PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${CHECKPOINT_SAVE_DIR}
 
 # data config
-DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_nfkc_16k_aligned_8
+DATASET_DIR=/groups/gcd50698/fujii/datasets/PUBMED_20230517/binarized/okazaki_lab
 
 DATA_PATH=""
 
-# ja okazaki lab common crawl
-DATA_PATH="${DATA_PATH} 10605477142 ${DATASET_DIR}/split_0_text_document"
-DATA_PATH="${DATA_PATH} 10464907226 ${DATASET_DIR}/split_1_text_document"
-DATA_PATH="${DATA_PATH} 12465407213 ${DATASET_DIR}/split_2_text_document"
-DATA_PATH="${DATA_PATH} 16446568076 ${DATASET_DIR}/split_3_text_document"
-DATA_PATH="${DATA_PATH} 38345096470 ${DATASET_DIR}/split_4_text_document"
-
-# ja wikipedia
-DATA_PATH="${DATA_PATH} 1672543873 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
-
-# en arxiv
-DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_arxiv_merged_text_document"
-
-# en falcon refined-web
-DATA_PATH="${DATA_PATH} 5000000000 ${DATASET_DIR}/lumi_en_falcon_merged_threadripper-3960x_8_text_document"
+# ja pubmed
+DATA_PATH="${DATA_PATH} 12405292899 ${DATASET_DIR}/pubmed_japanese_japanese_document"
+# en pubmed
+DATA_PATH="${DATA_PATH} 6320964579 ${DATASET_DIR}/pubmed_english_english_document"
 
 # job name
-JOB_NAME="llama-2-7b-base-extended-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}"
+JOB_NAME="llama-2-13b-base-extended-okazaki-lab-cc-${NODE_TYPE}-${NUM_NODES}node-${NUM_GPUS}gpu-${SEQ_LENGTH}s-DP=${DATA_PARALLEL_SIZE}-TP=${TENSOR_PARALLEL_SIZE}-PP=${PIPELINE_PARALLEL_SIZE}-BS=${GLOBAL_BATCH_SIZE}-LR=${LR}-MINLR=${MIN_LR}-WARMUP=${LR_WARMUP_STEPS}-WD=${WEIGHT_DECAY}-GC=${GRAD_CLIP}"
 
 # --norm-epsilon 1e-5 : conifg.json (RMS norm)
 
@@ -108,7 +96,7 @@ if [[ -f "${CHECKPOINT_SAVE_DIR}/latest_checkpointed_iteration.txt" ]]; then
   CHECKPOINT_ARGS="--load ${CHECKPOINT_SAVE_DIR}"
 else
   # first training
-  CHECKPOINT_ARGS="--load ${CHECKPOINT_DIR} --no-load-rng --no-load-optim"
+  CHECKPOINT_ARGS="--load ${CHECKPOINT_DIR} --no-load-rng --no-load-optim --finetune"
 fi
 
 # run
@@ -172,5 +160,5 @@ mpirun -np $NUM_GPUS \
   --recompute-granularity "selective" \
   --use-mpi \
   --wandb-name ${JOB_NAME} \
-  --wandb-project "Llama-2-7B" \
-  --wandb-entity "prj-jalm"
+  --wandb-project "PUBMED" \
+  --wandb-entity "fine-tuning-llm"
