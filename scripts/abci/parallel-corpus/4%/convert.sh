@@ -24,15 +24,15 @@ BASE_PIPELINE_PARALLEL_SIZE=1 # fixed
 ITERATION=25000
 FORMATTED_ITERATION=$(printf "%07d" $ITERATION)
 
-SAVE_DIR=/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/hf_checkpoints/Llama2-7b-base-parallel/initial-normal-quality-next-token/iter_${FORMATTED_ITERATION}
+SAVE_DIR=/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/hf_checkpoints/Llama2-7b-base-parallel/shuffle-normal-quality-next-token/iter_${FORMATTED_ITERATION}
 mkdir -p ${SAVE_DIR}
 
 # change latest_checkpointed_iteration.txt
-echo $ITERATION >/bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token/initial/normal-quality/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}/latest_checkpointed_iteration.txt
+echo $ITERATION >/bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token/shuffle/normal/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}/latest_checkpointed_iteration.txt
 
 python scripts/abci/megatron_to_hf/llama_checkpoint_conversion.py \
   --convert_checkpoint_from_megatron_to_transformers \
-  --load_path /bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token/initial/normal-quality/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE} \
+  --load_path /bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token/shuffle/normal/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE} \
   --save_path $SAVE_DIR \
   --target_params_dtype "bf16" \
   --print-checkpoint-structure \

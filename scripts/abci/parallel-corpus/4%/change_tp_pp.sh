@@ -25,8 +25,8 @@ BASE_TENSOR_PARALLEL_SIZE=2  # Llama-2 7B extended
 BASE_PIPELINE_PARALLEL_SIZE=2  # Llama-2 7B extended
 
 # model config
-BASE_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token/initial/normal-quality/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
-TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token/initial/normal-quality/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
+BASE_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token/shuffle/normal/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
+TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/4%/next-token/shuffle/normal/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${TARGET_CHECKPOINT_DIR}
 

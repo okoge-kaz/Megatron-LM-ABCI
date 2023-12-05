@@ -25,8 +25,8 @@ BASE_TENSOR_PARALLEL_SIZE=2  # Llama-2 7B extended
 BASE_PIPELINE_PARALLEL_SIZE=2  # Llama-2 7B extended
 
 # model config
-BASE_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/initial/high-quality/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
-TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/initial/high-quality/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
+BASE_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/shuffle/high-quality/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
+TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/checkpoints/parallel/2%/next-token/shuffle/high-quality/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${TARGET_CHECKPOINT_DIR}
 
@@ -34,7 +34,7 @@ mkdir -p ${TARGET_CHECKPOINT_DIR}
 TOKENIZER_MODEL=/bb/llm/gaf51275/llama/huggingface-checkpoint/Llama-2-7b-hf/tokenizer.model
 
 # change latest_checkpointed_iteration.txt
-ITERATION=25000
+ITERATION=15000
 echo $ITERATION >${BASE_CHECKPOINT_DIR}/latest_checkpointed_iteration.txt
 
 # convert
