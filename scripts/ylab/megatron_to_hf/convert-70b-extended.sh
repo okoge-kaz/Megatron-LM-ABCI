@@ -20,7 +20,7 @@ source .env/bin/activate
 BASE_TENSOR_PARALLEL_SIZE=1   # fixed
 BASE_PIPELINE_PARALLEL_SIZE=1 # fixed
 
-ITERATION=2000
+ITERATION=25000
 FORMATTED_ITERATION=$(printf "%07d" $ITERATION)
 
 SAVE_DIR=/mnt/nfs/Users/kazuki/checkpoints/llama/hf_checkpoints/Llama-2-70b-extended/iter_${FORMATTED_ITERATION}
