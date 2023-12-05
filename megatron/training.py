@@ -769,11 +769,11 @@ def train(forward_step_func, model, optimizer, opt_param_scheduler,
             unfreeze_all_parameters(model=model[0])
             print_rank_0(f"DEBUG: un-freeze : iteration : {iteration}")
 
-        if torch.distributed.get_rank() == 0:
-            print_rank_0(f"DEBUG: iteration : {iteration} : model embedding: {model[0].module.module.language_model.embedding.word_embeddings.weight}")
-            print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[0]: {model[0].module.module.language_model.encoder.layers[0].mlp.dense_h_to_4h.weight}")
-            print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[1]: {model[0].module.module.language_model.encoder.layers[1].mlp.dense_h_to_4h.weight}")
-            print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[15]: {model[0].module.module.language_model.encoder.layers[15].mlp.dense_h_to_4h.weight}")
+        # if torch.distributed.get_rank() == 0:
+        #     print_rank_0(f"DEBUG: iteration : {iteration} : model embedding: {model[0].module.module.language_model.embedding.word_embeddings.weight}")
+        #     print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[0]: {model[0].module.module.language_model.encoder.layers[0].mlp.dense_h_to_4h.weight}")
+        #     print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[1]: {model[0].module.module.language_model.encoder.layers[1].mlp.dense_h_to_4h.weight}")
+        #     print_rank_0(f"DEBUG: iteration : {iteration} : model mlp[15]: {model[0].module.module.language_model.encoder.layers[15].mlp.dense_h_to_4h.weight}")
 
         loss_dict, skipped_iter, grad_norm, num_zeros_in_grad = \
             train_step(forward_step_func,
