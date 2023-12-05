@@ -3,7 +3,7 @@
 set -e
 
 start=5000
-end=25000
+end=5000
 increment=5000
 
 upload_base_dir=/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/hf_checkpoints/Llama2-7b-base-parallel/shuffle-normal-quality-next-token
