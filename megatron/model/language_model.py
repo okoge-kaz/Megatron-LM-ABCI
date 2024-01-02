@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from megatron import get_args
 from megatron.core import mpu, tensor_parallel
 from megatron.core.enums import ModelType
-from megatron.core.models.common.rotary_pos_embedding import RotaryEmbedding
+from megatron.core.models.common.embeddings.rotary_pos_embedding import RotaryEmbedding
 
 from .enums import AttnMaskType, LayerType
 from .module import MegatronModule
@@ -178,6 +178,7 @@ class Embedding(MegatronModule):
 
         self.fp32_residual_connection = args.fp32_residual_connection
         self.sequence_parallel = args.sequence_parallel
+        self.clone_scatter_output_in_embedding = args.clone_scatter_output_in_embedding
         # Embeddings dropout
         self.embedding_dropout = torch.nn.Dropout(embedding_dropout_prob)
 
@@ -234,6 +235,11 @@ class Embedding(MegatronModule):
         # Dropout.
         if self.sequence_parallel:
             embeddings = tensor_parallel.scatter_to_sequence_parallel_region(embeddings)
+            # `scatter_to_sequence_parallel_region` returns a view, which prevents
+            # the original tensor from being garbage collected. Clone to facilitate GC.
+            # Has a small runtime cost (~0.5%).
+            if self.clone_scatter_output_in_embedding:
+                embeddings = embeddings.clone()
             with tensor_parallel.get_cuda_rng_tracker().fork():
                 embeddings = self.embedding_dropout(embeddings)
         else:
@@ -366,14 +372,12 @@ class TransformerLanguageModel(MegatronModule):
             rotary_dim = args.hidden_size // args.num_attention_heads \
                 if args.kv_channels is None else args.kv_channels
 
-            if args.rotary_percent < 1.0:
-                rotary_dim = int(rotary_dim * args.rotary_percent)
-
             # partial rotary embeddings, which is better than full rotary
             # Wang and Komatsuzaki et al
             # https://github.com/kingoflolz/mesh-transformer-jax/
             self.rotary_pos_emb = RotaryEmbedding(
                 rotary_dim,
+                args.rotary_percent,
                 seq_len_interpolation_factor=args.rotary_seq_len_interpolation_factor
             )
 

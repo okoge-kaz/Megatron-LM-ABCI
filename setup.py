@@ -1,10 +1,13 @@
-from setuptools import setup, find_packages
-
 """Setup for pip package."""
 
 import importlib.util
 import os
+import subprocess
+import sys
+
 import setuptools
+from setuptools import Extension, setup
+from setuptools.command.build_ext import build_ext
 
 spec = importlib.util.spec_from_file_location('package_info', 'megatron/core/package_info.py')
 package_info = importlib.util.module_from_spec(spec)
@@ -37,6 +40,7 @@ else:
 #                             Dependency Loading                              #
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 
+
 def req_file(filename, folder="megatron/core"):
     with open(os.path.join(folder, filename), encoding='utf-8') as f:
         content = f.readlines()
@@ -44,7 +48,15 @@ def req_file(filename, folder="megatron/core"):
     # Example: `\n` at the end of each line
     return [x.strip() for x in content]
 
+
 install_requires = req_file("requirements.txt")
+
+
+###############################################################################
+#                             Extension Making                                #
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
+
+extra_compile_args = subprocess.check_output(["python3",  "-m",  "pybind11", "--includes"]).decode("utf-8").strip().split()
 
 ###############################################################################
 
@@ -101,9 +113,15 @@ setuptools.setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
     ],
-    packages=['megatron.core', 'megatron.core.pipeline_parallel', 'megatron.core.tensor_parallel'], 
-    install_requires=install_requires,
-
+    packages=setuptools.find_packages(include=['megatron.core', 'megatron.core.*'],),
+    ext_modules=[
+        Extension(
+            "megatron.core.datasets.helpers",
+            sources=["megatron/core/datasets/helpers.cpp"],
+            language="c++",
+            extra_compile_args=extra_compile_args,
+        )
+    ],
     # Add in any packaged data.
     include_package_data=True,
     # PyPI package information.

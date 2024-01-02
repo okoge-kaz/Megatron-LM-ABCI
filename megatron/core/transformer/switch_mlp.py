@@ -4,9 +4,10 @@ import torch
 
 from megatron.core import parallel_state, tensor_parallel
 from megatron.core.parallel_state import (
-    get_tensor_and_data_parallel_group,
+    get_tensor_and_expert_parallel_group,
     get_tensor_model_parallel_group,
 )
+from megatron.core.tensor_parallel import get_cuda_rng_tracker, get_data_parallel_rng_tracker_name
 from megatron.core.transformer.module import MegatronModule
 from megatron.core.transformer.transformer_config import TransformerConfig
 
@@ -30,6 +31,14 @@ def sinkhorn(cost, tol=0.0001):
     return d1 * cost * d0.unsqueeze(1)
 
 
+def get_router_linear_layer(config):
+    router = torch.nn.Linear(config.hidden_size, config.num_moe_experts, bias=False)
+    with get_cuda_rng_tracker().fork(get_data_parallel_rng_tracker_name()):
+        config.init_method(router.weight)
+    setattr(router.weight, 'sequence_parallel', config.sequence_parallel)
+    return router
+
+
 class SwitchMLP(MegatronModule):
     """
     Top-1 Mixture of Experts Layer. Routes input to one of N MLP "experts"
@@ -41,27 +50,21 @@ class SwitchMLP(MegatronModule):
 
         self.config: TransformerConfig = config
 
-        self.router = torch.nn.Linear(self.config.hidden_size, self.config.num_moe_experts)
+        self.router = get_router_linear_layer(self.config)
         self.add_bias = config.add_bias_linear
-        self.expert_parallel = config.expert_parallel
         self.sequence_parallel = config.sequence_parallel
         self.route_algo = sinkhorn
         self.router_activation = torch.sigmoid
+        self.expert_parallel_size = parallel_state.get_expert_model_parallel_world_size()
 
-        if self.expert_parallel:
-            assert self.config.num_moe_experts % parallel_state.get_data_parallel_world_size() == 0
-            self.num_local_experts = (
-                self.config.num_moe_experts // parallel_state.get_data_parallel_world_size()
-            )
-            local_expert_indices_offset = (
-                parallel_state.get_data_parallel_rank() * self.num_local_experts
-            )
-            self.local_expert_indices = [
-                local_expert_indices_offset + i for i in range(self.num_local_experts)
-            ]
-        else:
-            self.num_local_experts = self.config.num_moe_experts
-            self.local_expert_indices = [i for i in range(self.num_local_experts)]
+        assert self.config.num_moe_experts % self.expert_parallel_size == 0
+        self.num_local_experts = self.config.num_moe_experts // self.expert_parallel_size
+        local_expert_indices_offset = (
+            parallel_state.get_expert_model_parallel_rank() * self.num_local_experts
+        )
+        self.local_expert_indices = [
+            local_expert_indices_offset + i for i in range(self.num_local_experts)
+        ]
 
         self.local_experts = torch.nn.ModuleList()
         for _ in range(self.num_local_experts):
@@ -70,10 +73,7 @@ class SwitchMLP(MegatronModule):
 
     def gather_indices(self, local_indices):
         """ Gather tensors and concatenate along the first dimension."""
-        if self.expert_parallel:
-            group = get_tensor_and_data_parallel_group()
-        else:
-            group = get_tensor_model_parallel_group()
+        group = get_tensor_and_expert_parallel_group()
         world_size = torch.distributed.get_world_size(group=group)
         # Bypass the function if we are using only 1 GPU.
         if world_size == 1:
@@ -109,9 +109,9 @@ class SwitchMLP(MegatronModule):
         max_prob = torch.unsqueeze(max_prob, 1)
         hidden_states = hidden_states.view(-1, hidden_shape[-1])
 
-        if self.sequence_parallel or self.expert_parallel:
+        if self.sequence_parallel or (self.expert_parallel_size > 1):
             global_hidden_states = tensor_parallel.gather_from_sequence_parallel_region_to_moe(
-                hidden_states, expert_parallel=self.expert_parallel
+                hidden_states
             )
             global_indices = self.gather_indices(max_ind)
         else:
@@ -133,13 +133,13 @@ class SwitchMLP(MegatronModule):
                 output_bias = output_bias.expand_as(output)
                 output_bias_total[local_indices, :] = output_bias
 
-        if self.sequence_parallel or self.expert_parallel:
+        if self.sequence_parallel or (self.expert_parallel_size > 1):
             output_total = tensor_parallel.reduce_scatter_to_sequence_parallel_region_from_moe(
-                output_total, expert_parallel=self.expert_parallel
+                output_total
             )
             if self.add_bias:
                 output_bias_total = tensor_parallel.reduce_scatter_to_sequence_parallel_region_from_moe(
-                    output_bias_total, expert_parallel=self.expert_parallel
+                    output_bias_total
                 )
                 # bias is duplicated across tensor parallelism ranks;
                 # reduce scatter reduces bias across tensor parallel_ranks

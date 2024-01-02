@@ -19,7 +19,7 @@ except ImportError:
     nltk_available = False
 
 from megatron.tokenizer import build_tokenizer
-from megatron.data import indexed_dataset
+from megatron.core.datasets import indexed_dataset
 from typing import Any
 
 
@@ -187,7 +187,7 @@ class Partition(object):
             total_bytes_processed += bytes_processed
             total_tokens_processed += tokens_processed
             for key in doc.keys():
-                builders[key].add_doc(doc[key], sentence_lens[key])
+                builders[key].add_document(doc[key], sentence_lens[key])
             self.print_processing_stats(i, proc_start, total_bytes_processed, total_tokens_processed)
 
         fin.close()
@@ -410,7 +410,7 @@ def main() -> None:
             partition_output_prefix = name['output_prefix']
             full_partition_output_prefix = "{}_{}_{}".format(partition_output_prefix,
                                                              key, level)
-            builders[key].merge_file_(full_partition_output_prefix)
+            builders[key].add_index(full_partition_output_prefix)
         builders[key].finalize(output_idx_files[key])
 
 

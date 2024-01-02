@@ -2,6 +2,7 @@
 
 """Transformer."""
 from contextlib import nullcontext
+import os
 import math
 import numpy as np
 import torch
@@ -15,10 +16,15 @@ from megatron.core.enums import ModelType
 from megatron.model.enums import AttnMaskType, LayerType, AttnType
 from megatron.model.fused_softmax import FusedScaleMaskSoftmax
 from megatron.model.fused_bias_gelu import bias_gelu_impl
-from megatron.core.models.common.rotary_pos_embedding import apply_rotary_pos_emb
+from megatron.core.models.common.embeddings.rotary_pos_embedding import RotaryEmbedding, apply_rotary_pos_emb
 from megatron.model.utils import attention_mask_func, openai_gelu, erf_gelu, get_norm
-from megatron.core.tensor_parallel import gather_from_sequence_parallel_region_to_moe, reduce_scatter_to_sequence_parallel_region_from_moe
-from megatron.core.parallel_state import get_tensor_model_parallel_group, get_tensor_and_data_parallel_group
+from megatron.core.tensor_parallel import (
+    gather_from_sequence_parallel_region_to_moe,
+    reduce_scatter_to_sequence_parallel_region_from_moe,
+    get_cuda_rng_tracker,
+    get_data_parallel_rng_tracker_name
+)
+from megatron.core.parallel_state import get_tensor_model_parallel_group, get_tensor_and_expert_parallel_group
 
 try:
     from einops import rearrange
@@ -128,8 +134,8 @@ class ParallelMLP(MegatronModule):
             config=config,
             init_method=config.output_layer_init_method,
             bias=self.add_bias,
-            input_is_parallel=True,
             skip_bias_add=True,
+            input_is_parallel=True,
             is_expert=is_expert,
         )
 
@@ -166,6 +172,16 @@ def sinkhorn(cost, tol=0.0001):
         d1_old = d1
     return d1*cost*d0.unsqueeze(1)
 
+
+def get_router_linear_layer(config):
+    args = get_args()
+    router = torch.nn.Linear(args.hidden_size, args.num_experts, bias=False)
+    with get_cuda_rng_tracker().fork(get_data_parallel_rng_tracker_name()):
+        config.init_method(router.weight)
+    setattr(router.weight, 'sequence_parallel',config.sequence_parallel)
+    return router
+
+
 class SwitchMLP(MegatronModule):
     """
     Routes input to one of N MLP "experts"
@@ -173,19 +189,15 @@ class SwitchMLP(MegatronModule):
     def __init__(self, config):
         super(SwitchMLP, self).__init__()
         args = get_args()
-        self.router = torch.nn.Linear(args.hidden_size, args.num_experts)
-        self.expert_parallel = config.expert_parallel
+        self.router = get_router_linear_layer(config)
+        self.expert_parallel_size = mpu.get_expert_model_parallel_world_size()
         self.sequence_parallel = config.sequence_parallel
         self.add_bias = config.add_bias_linear
 
-        if self.expert_parallel:
-            assert args.num_experts % mpu.get_data_parallel_world_size() == 0
-            self.num_local_experts = args.num_experts // mpu.get_data_parallel_world_size()
-            local_expert_indices_offset = mpu.get_data_parallel_rank() * self.num_local_experts
-            self.local_expert_indices = [local_expert_indices_offset + i for i in range(self.num_local_experts)]
-        else:
-            self.num_local_experts = args.num_experts
-            self.local_expert_indices = [i for i in range(self.num_local_experts)]
+        assert args.num_experts % self.expert_parallel_size == 0
+        self.num_local_experts = args.num_experts // self.expert_parallel_size
+        local_expert_indices_offset = mpu.get_expert_model_parallel_rank() * self.num_local_experts
+        self.local_expert_indices = [local_expert_indices_offset + i for i in range(self.num_local_experts)]
 
         self.local_experts = torch.nn.ModuleList()
         for i in range(self.num_local_experts):
@@ -193,10 +205,7 @@ class SwitchMLP(MegatronModule):
 
     def gather_indices(self, local_indices):
         """ Gather tensors and concatinate along the first dimension."""
-        if self.expert_parallel:
-            group = get_tensor_and_data_parallel_group()
-        else:
-            group = get_tensor_model_parallel_group()
+        group = get_tensor_and_expert_parallel_group()
         world_size = torch.distributed.get_world_size(group=group)
         # Bypass the function if we are using only 1 GPU.
         if world_size == 1:
@@ -240,12 +249,9 @@ class SwitchMLP(MegatronModule):
         # TODO (rprenger) TODO this could be made easier to read
         # Converting [s, b, h] to [s*b, h].
         # Each vector could be routed differently
-        if self.sequence_parallel or self.expert_parallel:
+        if self.sequence_parallel or (self.expert_parallel_size > 1):
             global_hidden_states = \
-                gather_from_sequence_parallel_region_to_moe(
-                    hidden_states,
-                    expert_parallel=self.expert_parallel
-                )
+                gather_from_sequence_parallel_region_to_moe(hidden_states)
             global_indices = self.gather_indices(max_ind)
         else:
             global_hidden_states = hidden_states
@@ -265,17 +271,12 @@ class SwitchMLP(MegatronModule):
                 output_bias = output_bias.expand_as(output)
                 output_bias_total[local_indices, :] = output_bias
 
-        if self.sequence_parallel or self.expert_parallel:
+        if self.sequence_parallel or (self.expert_parallel_size > 1):
             output_total = \
-                reduce_scatter_to_sequence_parallel_region_from_moe(
-                    output_total,
-                    expert_parallel=self.expert_parallel
-                )
+                reduce_scatter_to_sequence_parallel_region_from_moe(output_total)
             if self.add_bias:
                 output_bias_total = \
-                    reduce_scatter_to_sequence_parallel_region_from_moe(
-                        output_bias_total,
-                        expert_parallel=self.expert_parallel)
+                    reduce_scatter_to_sequence_parallel_region_from_moe(output_bias_total)
 
                 # bias is duplicated across tensor parallelism ranks;
                 # reduce scatter reduces bias across tensor parallel_ranks
@@ -768,14 +769,15 @@ class ParallelAttention(MegatronModule):
         # ==================================
 
         # expand the key_layer and value_layer [sk, b, ng, hn] -> [sk, b, np, hn]
-        key_layer = key_layer.repeat_interleave(
-            self.num_attention_heads_per_partition // self.num_query_groups_per_partition,
-            dim = 2
-        )
-        value_layer = value_layer.repeat_interleave(
-            self.num_attention_heads_per_partition // self.num_query_groups_per_partition,
-            dim = 2
-        )
+        if self.num_attention_heads_per_partition // self.num_query_groups_per_partition > 1:
+            key_layer = key_layer.repeat_interleave(
+                self.num_attention_heads_per_partition // self.num_query_groups_per_partition,
+                dim = 2
+            )
+            value_layer = value_layer.repeat_interleave(
+                self.num_attention_heads_per_partition // self.num_query_groups_per_partition,
+                dim = 2
+            )
 
         # apply relative positional encoding (rotary embedding)
         if rotary_pos_emb is not None:
@@ -855,7 +857,6 @@ class ParallelTransformerLayer(MegatronModule):
                  layer_number, layer_type=LayerType.encoder,
                  self_attn_mask_type=AttnMaskType.padding,
                  drop_path_rate=0.):
-                 # retriever=None):
         args = get_args()
 
         super(ParallelTransformerLayer, self).__init__()
@@ -1058,7 +1059,6 @@ class ParallelTransformerLayer(MegatronModule):
         if self.layer_type == LayerType.retro_decoder_with_retriever:
             first_ns = ns % self.retro_chunk_length
             if first_ns > 0:
-                raise Exception("test this case.")
                 first_chunk, rest_chunk = \
                     norm_output[:first_ns], norm_output[first_ns:]
                 first_chunk = torch.nn.functional.pad(
@@ -1126,7 +1126,9 @@ class ParallelTransformerLayer(MegatronModule):
                 norm_input,
                 (0, 0, 0, 0, pad, 0),
                 'constant', 0)[:ns] # [ns, b, d]
-            norm_input = norm_input + residual
+            # TODO: better redesign with inference param
+            args = get_args()
+            norm_input = args.retro_attention_gate * norm_input + residual
 
         # Layer norm post the decoder attention
         norm_output = self.post_inter_attention_norm(norm_input)
@@ -1140,6 +1142,16 @@ class ParallelTransformerLayer(MegatronModule):
                 retriever_attn_mask=None,
                 inference_params=None,
                 rotary_pos_emb=None):
+
+        # Update the params in case the retro param changes during inference
+        # TODO: better redesign with inference param
+        args = get_args()
+        if args.retro_add_retriever:
+            retro_args = get_retro_args()
+            self.retro_num_neighbors = args.retro_num_neighbors
+            self.retro_chunk_length = retro_args.retro_gpt_chunk_length
+            self.retro_retrieved_length = retro_args.retro_gpt_retrieved_length
+
         # hidden_states: [s, b, h]
 
         # Layer norm at the beginning of the transformer layer.
@@ -1486,6 +1498,10 @@ class ParallelTransformer(MegatronModule):
                     extra_transformer_engine_kwargs["activation"] = "swiglu" if args.swiglu else "gelu"
                 if self.transformer_engine_v_0_11:
                     extra_transformer_engine_kwargs["normalization"] = args.normalization
+                assert config.attention_softmax_in_fp32, "TransformerEngine only supports softmax compute in FP32."
+                assert (
+                    (bool(int(os.getenv("NVTE_APPLY_QK_LAYER_SCALING", "0"))) and args.fp16) == config.apply_query_key_layer_scaling
+                ), "Unsupported config for apply_query_key_layer_scaling in TransformerEngine."
                 return transformer_engine.pytorch.TransformerLayer(
                     config.hidden_size,
                     config.ffn_hidden_size,

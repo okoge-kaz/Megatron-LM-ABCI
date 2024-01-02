@@ -154,8 +154,8 @@ def get_block_samples_mapping(block_dataset, title_dataset, data_prefix, num_epo
               'the indices on rank 0 ...'.format(indexmap_filename))
 
         # Make sure the types match the helpers input types.
-        assert block_dataset.doc_idx.dtype == np.int64
-        assert block_dataset.sizes.dtype == np.int32
+        assert block_dataset.document_indices.dtype == np.int64
+        assert block_dataset.sequence_lengths.dtype == np.int32
 
         # Build samples mapping
         verbose = torch.distributed.get_rank() == 0
@@ -163,11 +163,11 @@ def get_block_samples_mapping(block_dataset, title_dataset, data_prefix, num_epo
         print_rank_0(' > building samples index mapping for {} ...'.format(
             name))
 
-        from megatron.data import helpers
+        from megatron.core.datasets import helpers
         mapping_array = helpers.build_blocks_mapping(
-            block_dataset.doc_idx,
-            block_dataset.sizes,
-            title_dataset.sizes,
+            block_dataset.document_indices,
+            block_dataset.sequence_lengths,
+            title_dataset.sequence_lengths,
             num_epochs,
             max_num_samples,
             max_seq_length - 3,  # account for added tokens
@@ -188,7 +188,7 @@ def get_block_samples_mapping(block_dataset, title_dataset, data_prefix, num_epo
     # This should be a barrier but nccl barrier assumes
     # device_index=rank which is not the case for model
     # parallel case
-    counts = torch.cuda.LongTensor([1])
+    counts = torch.tensor([1], dtype=torch.long, device='cuda')
     torch.distributed.all_reduce(counts, group=mpu.get_data_parallel_group())
     assert counts[0].item() == torch.distributed.get_world_size(
         group=mpu.get_data_parallel_group())

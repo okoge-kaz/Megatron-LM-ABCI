@@ -19,6 +19,7 @@ _GLOBAL_NUM_MICROBATCHES_CALCULATOR = None
 _GLOBAL_TOKENIZER = None
 _GLOBAL_TENSORBOARD_WRITER = None
 _GLOBAL_WANDB_WRITER = None
+_GLOBAL_WANDB_WRITER = None
 _GLOBAL_ADLR_AUTORESUME = None
 _GLOBAL_TIMERS = None
 _GLOBAL_SIGNAL_HANDLER = None
@@ -61,6 +62,8 @@ def get_tensorboard_writer():
 
 
 def get_wandb_writer():
+    """Return tensorboard writer. It can be None so no need
+    to check if it is initialized."""
     return _GLOBAL_WANDB_WRITER
 
 
@@ -99,6 +102,7 @@ def set_global_variables(args: argparse.Namespace, build_tokenizer=True) -> None
     if build_tokenizer:
         _ = _build_tokenizer(args)
     _set_tensorboard_writer(args)
+    _set_wandb_writer(args)
     _set_wandb_writer(args)
     _set_adlr_autoresume(args)
     _set_timers(args)

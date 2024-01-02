@@ -42,25 +42,20 @@ class TransformerLayer(MegatronModule):
         config: TransformerConfig,
         submodules: TransformerLayerSubmodules,
         layer_number: int = 1,
-        self_attn_mask_type=AttnMaskType.padding,
+        hidden_dropout: float = None,
     ):
         super().__init__(config=config)
-        self.config: TransformerConfig = config
 
         self.layer_number = layer_number + self._get_layer_offset()
-
-        self.self_attn_mask_type = self_attn_mask_type
+        self.hidden_dropout = config.hidden_dropout if hidden_dropout is None else hidden_dropout
 
         ## [Module 1: Input Layernorm] Optional Layernorm on the input data
         # TODO: add pytorch only layernorm
         self.input_layernorm = build_module(
             submodules.input_layernorm,
+            config=self.config,
             hidden_size=self.config.hidden_size,
             eps=self.config.layernorm_epsilon,
-            persist_layer_norm=self.config.persist_layer_norm,
-            sequence_parallel=self.config.sequence_parallel,
-            zero_centered_gamma=self.config.layernorm_zero_centered_gamma,
-            normalization=self.config.normalization,
         )
 
         ## [Module 2: SelfAttention]
@@ -74,12 +69,9 @@ class TransformerLayer(MegatronModule):
         ## [Module 4: Post SelfAttention] Optional Layernorm after self-attn
         self.pre_cross_attn_layernorm = build_module(
             submodules.pre_cross_attn_layernorm,
+            config=self.config,
             hidden_size=self.config.hidden_size,
             eps=self.config.layernorm_epsilon,
-            persist_layer_norm=self.config.persist_layer_norm,
-            sequence_parallel=self.config.sequence_parallel,
-            zero_centered_gamma=self.config.layernorm_zero_centered_gamma,
-            normalization=self.config.normalization,
         )
 
         ## [Module 5: CrossAttention]
@@ -88,17 +80,14 @@ class TransformerLayer(MegatronModule):
         )
 
         ## [Module 6: BiasDropoutFusion]
-        self.cross_attn_bda = build_module(submodules.cross_attn_bda)
+        self.cross_attn_bda = build_module(submodules.cross_attn_bda, config=self.config,)
 
-        ## [Module 7: Post Cross Attention] Optional Layernorm after cross-attn
+        ## [Module 7: Pre MLP] Optional Layernorm before MLP
         self.pre_mlp_layernorm = build_module(
             submodules.pre_mlp_layernorm,
+            config=self.config,
             hidden_size=self.config.hidden_size,
             eps=self.config.layernorm_epsilon,
-            persist_layer_norm=self.config.persist_layer_norm,
-            sequence_parallel=self.config.sequence_parallel,
-            zero_centered_gamma=self.config.layernorm_zero_centered_gamma,
-            normalization=self.config.normalization,
         )
 
         ## [Module 8: MLP block]
@@ -149,8 +138,8 @@ class TransformerLayer(MegatronModule):
         attention_mask,
         context=None,
         context_mask=None,
-        inference_params=None,
         rotary_pos_emb=None,
+        inference_params=None,
     ):
         # hidden_states: [s, b, h]
 
@@ -172,7 +161,7 @@ class TransformerLayer(MegatronModule):
         # inside the module provided in the `bias_dropout_add_spec` module?
         with self.bias_dropout_add_exec_handler():
             hidden_states = self.self_attn_bda(self.training, self.config.bias_dropout_fusion)(
-                attention_output_with_bias, residual, self.config.hidden_dropout
+                attention_output_with_bias, residual, self.hidden_dropout
             )
 
         # Residual connection.
@@ -184,16 +173,19 @@ class TransformerLayer(MegatronModule):
         # Cross attention.
         attention_output_with_bias = self.cross_attention(
             pre_cross_attn_layernorm_output,
-            attention_mask=attention_mask,
-            context=context,
+            attention_mask=context_mask,
+            key_value_states=context,
             inference_params=inference_params,
         )
+
+        if isinstance(attention_output_with_bias, dict) and "context" in attention_output_with_bias:
+            context = attention_output_with_bias["context"]
 
         # TODO: could we move `bias_dropout_add_exec_handler` itself
         # inside the module provided in the `bias_dropout_add_spec` module?
         with self.bias_dropout_add_exec_handler():
             hidden_states = self.cross_attn_bda(self.training, self.config.bias_dropout_fusion)(
-                attention_output_with_bias, residual, self.config.hidden_dropout
+                attention_output_with_bias, residual, self.hidden_dropout
             )
 
         # Residual connection.
@@ -209,7 +201,7 @@ class TransformerLayer(MegatronModule):
         # inside the module provided in the `bias_dropout_add_spec` module?
         with self.bias_dropout_add_exec_handler():
             hidden_states = self.mlp_bda(self.training, self.config.bias_dropout_fusion)(
-                mlp_output_with_bias, residual, self.config.hidden_dropout
+                mlp_output_with_bias, residual, self.hidden_dropout
             )
 
         # Jit compiled function creates 'view' tensor. This tensor
@@ -222,67 +214,32 @@ class TransformerLayer(MegatronModule):
             inp=hidden_states, requires_grad=hidden_states.requires_grad, keep_graph=True
         )
 
-        return output
+        return output, context
 
     def sharded_state_dict(self, prefix=''):
-
-        # state_dict = self.state_dict(prefix=prefix, keep_vars=True)
-        state_dict = self.state_dict(keep_vars=True)
-
-        tensor_parallel_layers_axis_map = {
-            'self_attention.linear_qkv.weight': 0,
-            'self_attention.linear_qkv.bias': 0,
-            'self_attention.linear_proj.weight': 1,
-            'mlp.linear_fc1.weight': 0,
-            'mlp.linear_fc1.bias': 0,
-            'mlp.linear_fc2.weight': 1,
-        }
-
         offset = self._get_layer_offset()
         num_layers = self.config.num_layers
 
-        sharded_state_dict = {}
+        global_layer_offset = self.layer_number - 1  # self.layer_number starts at 1
+        state_dict_prefix = (
+            f'{prefix}{global_layer_offset - offset}.'  # module list index in TransformerBlock
+        )
+        sharded_pp_offset = [
+            (0, global_layer_offset, num_layers)
+        ]  # PP sharding offset for ShardedTensors
 
-        for layer_name in state_dict.keys():
-            tensor = state_dict[layer_name]
-            global_layer_offset = self.layer_number - 1  # self.layer_number starts at 1
-            layer_key = f'{prefix}{global_layer_offset - offset}.{layer_name}'  # module list index in TransformerBlock
-            sharded_offsets = [(0, global_layer_offset, num_layers)]  # PP sharding
+        attn_state_dict = self.self_attention.sharded_state_dict(
+            prefix=f'{state_dict_prefix}self_attention.',
+            sharded_key_prefix=f'{prefix}self_attention.',
+            sharded_offsets=sharded_pp_offset,
+        )
 
-            if layer_name in tensor_parallel_layers_axis_map:
-                tp_axis = tensor_parallel_layers_axis_map[layer_name]
-                # TP sharding
-                sharded_offsets.append(
-                    [
-                        tp_axis + 1,  # +1 for PP dimension
-                        parallel_state.get_tensor_model_parallel_rank(),
-                        parallel_state.get_tensor_model_parallel_world_size(),
-                    ]
-                )
-                replica_id = parallel_state.get_data_parallel_rank()
-            else:
-                replica_id = (
-                    parallel_state.get_data_parallel_rank()
-                    * parallel_state.get_data_parallel_world_size()
-                    + parallel_state.get_tensor_model_parallel_rank()
-                )
+        mlp_state_dict = self.mlp.sharded_state_dict(
+            prefix=f'{state_dict_prefix}mlp.',
+            sharded_key_prefix=f'{prefix}mlp.',
+            sharded_offsets=sharded_pp_offset,
+        )
 
-            if layer_name.endswith('._extra_state'):
-                sharded_state_dict[layer_key] = ShardedObject(
-                    f'{prefix}{layer_name}',
-                    tensor,
-                    (num_layers,),
-                    (global_layer_offset,),
-                    replica_id,
-                )
-
-            else:
-                sharded_state_dict[layer_key] = ShardedTensor.from_rank_offsets(
-                    f'{prefix}{layer_name}',
-                    tensor,
-                    *sharded_offsets,
-                    replica_id=replica_id,
-                    prepend_axis_num=1,  # for PP sharding
-                )
+        sharded_state_dict = {**mlp_state_dict, **attn_state_dict}
 
         return sharded_state_dict
