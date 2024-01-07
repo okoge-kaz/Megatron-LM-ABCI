@@ -414,13 +414,17 @@ def convert_checkpoint_from_megatron_to_transformers(args: argparse.Namespace) -
     else:
         dtype = torch.float32
 
+    num_kv_heads: int = megatron_args.num_attention_heads
+    if megatron_args.group_query_attention:
+        num_kv_heads = megatron_args.num_attention_heads // megatron_args.num_query_groups
+
     config = LlamaConfig(
         bos_token_id=1,
         eos_token_id=2,
         pretraining_tp=1,
         hidden_act='silu',
         hidden_size=megatron_args.hidden_size,
-        num_key_value_heads=megatron_args.num_query_groups if megatron_args.group_query_attention else megatron_args.num_attention_heads,
+        num_key_value_heads=num_kv_heads,
         intermediate_size=megatron_args.ffn_hidden_size,
         initializer_range=0.02,
         max_sequence_length=megatron_args.seq_length,
@@ -522,7 +526,7 @@ def convert_checkpoint_from_megatron_to_transformers(args: argparse.Namespace) -
 
                 wq, wk, wv = convert_wqkv(
                     qkv_w=params, layer_idx=layer_idx, n_heads=config.num_attention_heads,
-                    n_heads_kv=megatron_args.num_query_groups if megatron_args.group_query_attention else config.num_attention_heads,
+                    n_heads_kv=num_kv_heads,
                     tp_size=tp_size
                 )
 
@@ -615,306 +619,6 @@ def convert_checkpoint_from_megatron_to_transformers(args: argparse.Namespace) -
         )
 
 
-def convert_checkpoint_from_transformers_to_megatron(args):
-    """
-    Convert a checkpoint from HuggingFace Transformers to Megatron-LM. This allows converted checkpoints with variable
-    tensor parallelism and pipeline parallelism sizes. It takes as input a checkpoint from HuggingFace Transformers
-    which can have multiple shards.
-
-    Args:
-        args (argparse.Namespace): the arguments to the script
-
-    """
-    os.makedirs(args.save_path, exist_ok=True)
-    # Search in directory above this
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-    if args.megatron_path is not None:
-        sys.path.insert(0, args.megatron_path)
-
-    try:
-        from megatron.tokenizer.tokenizer import _vocab_size_with_padding
-        from megatron.fs_utils import create_read_file_system  # type: ignore
-    except ModuleNotFoundError:
-        print("Unable to import Megatron, please specify the path to Megatron using --megatron-path. Exiting.")
-        exit(1)
-
-    # load the transformers model state dict and config
-    sub_dirs = [x for x in os.listdir(args.load_path) if x.startswith("pytorch_model")]
-    if len(sub_dirs) == 1:
-        checkpoint_name = "pytorch_model.bin"
-        state_dict = torch.load(os.path.join(args.load_path, checkpoint_name), map_location="cpu")
-    else:
-        num_checkpoints = len(sub_dirs) - 1
-        state_dict = merge_transformers_sharded_states(args.load_path, num_checkpoints)
-
-    config = LlamaConfig.from_pretrained(args.load_path)
-
-    # Saving the tracker file
-    tracker_filepath = os.path.join(args.save_path, "latest_checkpointed_iteration.txt")
-    with open(tracker_filepath, "w") as f:
-        f.write("release")
-
-    # create `release` dir in args.load_path
-    release_dir = os.path.join(args.save_path, "release")
-    os.makedirs(release_dir, exist_ok=True)
-
-    # megatron args
-    megatron_args = {
-        "orig_vocab_size": config.vocab_size,
-        "max_position_embeddings": config.max_position_embeddings,
-        "hidden_size": config.hidden_size,
-        "num_layers": config.num_hidden_layers,
-        "num_attention_heads": config.num_attention_heads,
-        "ffn_hidden_size": config.intermediate_size,
-        "tensor_model_parallel_size": args.target_tensor_model_parallel_size,
-        "pipeline_model_parallel_size": args.target_pipeline_model_parallel_size,
-        "data_parallel_size": args.target_data_parallel_size,
-        "make_vocab_size_divisible_by": args.make_vocab_size_divisible_by,
-        "rank": 0,
-        "tokenizer_type": "GPT2BPETokenizer",
-    }
-
-    margs = types.SimpleNamespace()
-    for k, v in megatron_args.items():
-        setattr(margs, k, v)
-
-    # params dtype
-    if args.target_params_dtype == "fp16":
-        dtype = torch.float16
-    elif args.target_params_dtype == "bf16":
-        dtype = torch.bfloat16
-    else:
-        dtype = torch.float32
-    setattr(margs, "params_dtype", dtype)
-
-    # save dummy optim state dict
-    dummy_optim_state_dict = {}
-    dummy_optim_state_dict["optimizer"] = {
-        "step": 0,
-        "param_groups": [
-            {
-                "lr": 0.0,
-                "beta1": 0.0,
-                "beta2": 0.0,
-                "eps": 0.0,
-                "weight_decay": 0.0,
-                "correct_bias": False,
-                "params": [],
-            }
-        ],
-    }
-    if args.use_distributed_optimizer:
-        for i in range(args.target_pipeline_model_parallel_size):
-            for j in range(args.target_tensor_model_parallel_size):
-                for k in range(args.target_data_parallel_size):
-                    if args.target_pipeline_model_parallel_size == 1:
-                        checkpoint_dir = f"mp_rank_{j:02d}_{i:03d}"
-                    else:
-                        checkpoint_dir = f"mp_rank_{j:02d}_{i:03d}_{k:03d}"
-                    checkpoint_dir = os.path.join(release_dir, checkpoint_dir)
-                    os.makedirs(checkpoint_dir, exist_ok=True)
-                    torch.save(
-                        dummy_optim_state_dict,
-                        os.path.join(checkpoint_dir, "optim.pt"),
-                    )
-
-    # Convert.
-    print("Converting")
-    output_state_dict = []
-    for i in range(args.target_tensor_model_parallel_size):
-        output_state_dict.append({})
-
-    # Embedding layer
-    print("converting embedding layer")
-    # pos_embedding = state_dict["transformer.wpe.weight"].to(dtype)
-    word_embedding = state_dict["model.embed_tokens.weight"].to(dtype)
-    orig_vocab_size = config.vocab_size
-    padded_vocab_size = _vocab_size_with_padding(orig_vocab_size, margs)
-    setattr(margs, "padded_vocab_size", padded_vocab_size)
-    # Cut out extra padding we don't need
-    if orig_vocab_size > padded_vocab_size:
-        full_word_embed = word_embedding[0:padded_vocab_size, :]
-    # Expanding embedding to larger size by replicating final entry
-    elif orig_vocab_size < padded_vocab_size:
-        padding_size = padded_vocab_size - orig_vocab_size
-        full_word_embed = torch.cat((word_embedding, word_embedding[-1].unsqueeze(0).expand(padding_size, -1)))
-    # Same size!
-    else:
-        full_word_embed = word_embedding
-
-    # Split into new tensor model parallel sizes
-    out_word_embed = torch.chunk(full_word_embed, args.target_tensor_model_parallel_size, dim=0)
-    for i in range(args.target_tensor_model_parallel_size):
-        word_emb_dict = get_element_from_dict_by_path(
-            output_state_dict[i], "model.language_model.embedding.word_embeddings"
-        )
-        word_emb_dict["weight"] = out_word_embed[i]
-
-    # Transformer layers
-    print("converting transformer layers")
-    if config.num_hidden_layers % args.target_tensor_model_parallel_size != 0:
-        raise ValueError(
-            f"Number of layers ({config.num_hidden_layers}) must be divisible by number of tensor parallelism"
-            f" ({args.target_tensor_model_parallel_size})"
-        )
-    num_layers = config.num_hidden_layers // args.target_pipeline_model_parallel_size
-
-    layer_re = re.compile(r"model.layers\.(\d+)\.([a-z0-9_.]+)\.([a-z]+)")
-    # The number of heads.
-    heads = config.num_attention_heads
-    # The hidden_size per head.
-    hidden_size_per_head = config.hidden_size // config.num_attention_heads
-    for pp_rank in range(args.target_pipeline_model_parallel_size):
-        layer_offset = pp_rank * num_layers
-        if pp_rank > 0:
-            output_state_dict = []
-            for i in range(args.target_tensor_model_parallel_size):
-                output_state_dict.append({})
-
-        for layer in range(num_layers):
-            pp_layer_id = layer + layer_offset
-            layers_to_copy = [
-                layer_name
-                for layer_name in state_dict.keys()
-                if layer_name.startswith(f"model.layers.{pp_layer_id}.")
-            ]
-
-            qkv_weight_to_combine = {}
-            mlp_weight_to_combine = {}
-            for layer_name in layers_to_copy:
-                m = layer_re.match(layer_name)
-                # Stop if that's not a layer
-                if m is None:
-                    break
-
-                # The index of the layer.
-                _ = int(m.group(1))
-                # The name of the operation.
-                op_name = m.group(2)
-                # Is it a weight or a bias?
-                weight_or_bias = m.group(3)
-
-                params = state_dict[layer_name].to(dtype)
-                # handle layernorm
-                if op_name.endswith("layernorm"):
-                    # out_name = "input_layernorm" if op_name.endswith("1") else "post_attention_layernorm"
-                    out_name = op_name
-                    layer_name = f"layers.{layer}.{out_name}.{weight_or_bias}"
-
-                elif 'self_attn.o_proj' in op_name and weight_or_bias == 'weight':
-                    layer_name = f"layers.{layer}.self_attention.dense.{weight_or_bias}"
-
-                # handle attention K, V, Q weights
-                elif op_name.startswith("self_attn") and weight_or_bias == "weight":
-                    # transformers stores D X (3*D) but Megatron-LM expects (3*D) X D.
-                    # params = params.transpose(0, 1).contiguous()
-                    assert (len(qkv_weight_to_combine) != 3)
-
-                    if 'q_proj' in op_name:
-                        qkv_weight_to_combine['q_proj'] = params
-                    elif 'k_proj' in op_name:
-                        qkv_weight_to_combine['k_proj'] = params
-                    elif 'v_proj' in op_name:
-                        qkv_weight_to_combine['v_proj'] = params
-
-                    if len(qkv_weight_to_combine) == 3:
-                        q_weights = qkv_weight_to_combine['q_proj'].chunk(args.target_tensor_model_parallel_size, dim=0)
-                        k_weights = qkv_weight_to_combine['k_proj'].chunk(args.target_tensor_model_parallel_size, dim=0)
-                        v_weights = qkv_weight_to_combine['v_proj'].chunk(args.target_tensor_model_parallel_size, dim=0)
-                        result_weights = []
-                        for idx in range(len(q_weights)):
-                            partition_weight = torch.cat([q_weights[idx], k_weights[idx], v_weights[idx]])
-                            result_weights.append(partition_weight)
-
-                        params = torch.cat(result_weights)
-                        layer_name = f"layers.{layer}.self_attention.query_key_value.{weight_or_bias}"
-                    else:
-                        continue
-
-                elif op_name.startswith("mlp") and weight_or_bias == "weight":
-                    if 'down_proj' in op_name:
-                        layer_name = f"layers.{layer}.mlp.dense_4h_to_h.{weight_or_bias}"
-                    elif 'gate_proj' in op_name:
-                        assert (len(mlp_weight_to_combine) != 2)
-                        mlp_weight_to_combine['gate_proj'] = params
-                    elif 'up_proj' in op_name:
-                        assert (len(mlp_weight_to_combine) != 2)
-                        mlp_weight_to_combine['up_proj'] = params
-
-                    if 'down_proj' not in op_name and len(mlp_weight_to_combine) == 2:
-                        gate_weights = mlp_weight_to_combine['gate_proj'].chunk(args.target_tensor_model_parallel_size, dim=0)
-                        up_weights = mlp_weight_to_combine['up_proj'].chunk(args.target_tensor_model_parallel_size, dim=0)
-                        result_weights = []
-                        for idx in range(len(gate_weights)):
-                            partition_weight = torch.cat([gate_weights[idx], up_weights[idx]])
-                            result_weights.append(partition_weight)
-
-                        params = torch.cat(result_weights)
-                        layer_name = f"layers.{layer}.mlp.dense_h_to_4h.{weight_or_bias}"
-                    elif 'down_proj' not in op_name and len(mlp_weight_to_combine) < 2:
-                        continue
-
-                else:
-                    continue
-
-                if op_name + "." + weight_or_bias in tensor_parallel_params:
-                    dim = 1 if op_name in [
-                        "self_attn.o_proj", "mlp.down_proj"] else 0
-                    params = torch.chunk(
-                        params, args.target_tensor_model_parallel_size, dim=dim)
-
-                for i in range(args.target_tensor_model_parallel_size):
-                    params_dict = get_element_from_dict_by_path(
-                        output_state_dict[i], "model.language_model.encoder")
-                    params_dict[layer_name] = (
-                        params[i].clone().detach().contiguous() if (op_name + "." + weight_or_bias in tensor_parallel_params)
-                        else params.clone().detach().contiguous()
-                    )
-
-        if pp_rank == args.target_pipeline_model_parallel_size - 1:
-            # handle final layernorm
-            params = state_dict[f"model.norm.weight"].to(dtype)
-            layer_name = f"final_layernorm.{weight_or_bias}"
-            for i in range(args.target_tensor_model_parallel_size):
-                params_dict = get_element_from_dict_by_path(
-                    output_state_dict[i], "model.language_model.encoder")
-                params_dict[layer_name] = params.clone().detach().contiguous()
-
-            # add the LM head
-            for i in range(args.target_tensor_model_parallel_size):
-                params_dict = get_element_from_dict_by_path(
-                    output_state_dict[i], "model.lm_head")
-                params_dict["weight"] = state_dict['lm_head.weight'].to(
-                    dtype).clone().detach().contiguous()
-
-        # saving the state dict as per the tp_rank and pp_rank
-        for tp_rank in range(args.target_tensor_model_parallel_size):
-            output_state_dict[tp_rank]["checkpoint_version"] = 3.0
-            output_state_dict[tp_rank]["args"] = margs
-            checkpoint_dir = (
-                f"mp_rank_{tp_rank:02d}"
-                if args.target_pipeline_model_parallel_size == 1
-                else f"mp_rank_{tp_rank:02d}_{pp_rank:03d}"
-            )
-            if args.use_distributed_optimizer:
-                checkpoint_name = "model_optim_rng.pt"
-            else:
-                checkpoint_name = "model_optim_rng.pt"
-                output_state_dict[tp_rank]["optimizer"] = dummy_optim_state_dict["optimizer"]
-            checkpoint_dir = os.path.join(release_dir, checkpoint_dir)
-            os.makedirs(checkpoint_dir, exist_ok=True)
-            checkpoint_path = os.path.join(checkpoint_dir, checkpoint_name)
-            if args.print_checkpoint_structure:
-                print(
-                    f"Checkpoint structure of model state dict shard belonging to TP rank {tp_rank} and PP rank"
-                    f" {pp_rank}:"
-                )
-                recursive_print(None, output_state_dict[tp_rank])
-            torch.save(output_state_dict[tp_rank], checkpoint_path)
-
-    copy_tokenizer(args=args)
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser = add_checkpointing_args(parser)
@@ -925,7 +629,7 @@ def main():
     if args.convert_checkpoint_from_megatron_to_transformers:
         convert_checkpoint_from_megatron_to_transformers(args)
     else:
-        convert_checkpoint_from_transformers_to_megatron(args)
+        raise NotImplementedError
 
 
 if __name__ == "__main__":
