@@ -10,7 +10,15 @@ from torch import Tensor
 
 from megatron.core import InferenceParams, parallel_state, tensor_parallel
 from megatron.core.fusions.fused_layer_norm import FusedLayerNorm
-from megatron.core.transformer.custom_layers.transformer_engine import TENorm
+
+transformer_engine_available = False
+try:
+    from megatron.core.transformer.custom_layers.transformer_engine import TENorm
+    transformer_engine_available = True
+except ImportError:
+    pass
+
+
 from megatron.core.transformer.enums import AttnMaskType
 from megatron.core.transformer.module import MegatronModule
 from megatron.core.transformer.spec_utils import ModuleSpec, build_module
@@ -140,11 +148,18 @@ class TransformerBlock(MegatronModule):
 
         if self.post_process and self.post_layer_norm:
             # Final layer norm before output.
-            self.final_layernorm = TENorm(
-                config=self.config,
-                hidden_size=self.config.hidden_size,
-                eps=self.config.layernorm_epsilon,
-            )
+            if transformer_engine_available:
+                self.final_layernorm = TENorm(
+                    config=self.config,
+                    hidden_size=self.config.hidden_size,
+                    eps=self.config.layernorm_epsilon,
+                )
+            else:
+                self.final_layernorm = FusedLayerNorm(
+                    config=self.config,
+                    hidden_size=self.config.hidden_size,
+                    eps=self.config.layernorm_epsilon,
+                )
 
     def _get_layer(self, layer_number: int):
         return self.layers[layer_number]

@@ -28,10 +28,16 @@ from megatron.utils import (
 )
 from megatron.arguments import core_transformer_config_from_args
 
-from megatron.core.models.gpt.gpt_layer_specs import (
-    get_gpt_layer_with_transformer_engine_spec,
-    gpt_layer_with_transformer_engine_spec_moe
-)
+try:
+    from megatron.core.models.gpt.gpt_layer_specs import (
+        get_gpt_layer_with_transformer_engine_spec,
+        gpt_layer_with_transformer_engine_spec_moe
+    )
+except Exception:
+    def get_gpt_layer_with_transformer_engine_spec():
+        pass
+    gpt_layer_with_transformer_engine_spec_moe = None
+    pass
 
 
 def model_provider(pre_process=True, post_process=True) -> Union[GPTModel, megatron.model.GPTModel]:

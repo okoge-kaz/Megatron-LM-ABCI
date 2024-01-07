@@ -22,6 +22,7 @@ from megatron.global_vars import set_global_variables
 from megatron.model.transformer import bias_dropout_add_fused_train
 from megatron.model.fused_bias_gelu import bias_gelu
 
+
 def initialize_megatron(
     extra_args_provider=None,
     args_defaults={},
