@@ -416,7 +416,7 @@ def convert_checkpoint_from_megatron_to_transformers(args: argparse.Namespace) -
 
     num_kv_heads: int = megatron_args.num_attention_heads
     if megatron_args.group_query_attention:
-        num_kv_heads = megatron_args.num_attention_heads / megatron_args.num_query_groups
+        num_kv_heads = megatron_args.num_attention_heads // megatron_args.num_query_groups
 
     config = LlamaConfig(
         bos_token_id=1,
