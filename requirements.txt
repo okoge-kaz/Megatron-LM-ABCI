@@ -1,4 +1,6 @@
 pybind11
+zarr
+tensorstore
 
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==2.1.2+cu121
