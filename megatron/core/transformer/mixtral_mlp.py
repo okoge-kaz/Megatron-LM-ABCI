@@ -1,3 +1,5 @@
+# source: https://github.com/huggingface/transformers/blob/main/src/transformers/models/mixtral/modeling_mixtral.py
+
 import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
