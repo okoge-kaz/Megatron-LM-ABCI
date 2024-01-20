@@ -217,7 +217,7 @@ def initialize_model_parallel(
 
     if expert_model_parallel_size > 1 and context_parallel_size > 1:
         raise RuntimeError(
-            f"combination of expert model prallellism and context parallelism is not supported"
+            "combination of expert model parallelism and context parallelism is not supported"
         )
 
     num_tensor_model_parallel_groups: int = world_size // tensor_model_parallel_size
