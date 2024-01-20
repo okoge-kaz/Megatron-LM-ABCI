@@ -7,13 +7,12 @@
 
 # module load
 source /etc/profile.d/modules.sh
-module load cuda/11.8/11.8.0
-module load cudnn/8.9/8.9.2
-module load nccl/2.16/2.16.2-1
+module load cuda/12.1/12.1.1
+module load cudnn/8.9/8.9.5
+module load nccl/2.18/2.18.3-1
 module load hpcx/2.12
 
 # python virtualenv
-cd /bb/llm/gaf51275/llama/Megatron-LM
 source .env/bin/activate
 
 # distributed settings
@@ -163,7 +162,6 @@ mpirun -np $NUM_GPUS \
   --norm-epsilon 1e-5 \
   --no-position-embedding \
   --no-masked-softmax-fusion \
-  --no-query-key-layer-scaling \
   --attention-dropout 0.0 \
   --hidden-dropout 0.0 \
   --swiglu \
