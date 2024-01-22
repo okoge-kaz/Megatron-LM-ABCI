@@ -319,19 +319,19 @@ def throughput_calculator(
     if args.swiglu:
         activation_function_factor = 4 + 2  # SWiGLU (upscaling + down scaling)
 
-    gqa_num_query_groups: int = 1
+    gqa_group_size: int = 1
     if args.group_query_attention:  # GQA
-        gqa_num_query_groups = args.num_query_groups
+        gqa_group_size = args.num_attention_heads // args.num_query_groups
 
     # 2: post-attention linear projection
     # 2 * 3: Key, Query, and Value transformation
-    # / gqa_num_query_groups : GQA: Grouped Query Attention (default: gqa_num_query_groups=1)
+    # / gqa_group_size : GQA: Grouped Query Attention (default: gqa_group_size=1)
     flops_per_iteration: float = checkpoint_activations_factor * ((
         (2 + (2 * 3) + activation_function_factor * (intermediate_size / hidden_size)) * batch_size * seq_len * num_layers * (hidden_size**2)
     ) + (
         ((  # Attention matrix & attention over values
             4 * batch_size * (seq_len ** 2) * hidden_size
-        ) / gqa_num_query_groups * selective_recompute_factor
+        ) / gqa_group_size * selective_recompute_factor
         ) +  # noqa: W504
         # lm-head: logit layer
         2 * batch_size * seq_len * hidden_size * vocab_size)
