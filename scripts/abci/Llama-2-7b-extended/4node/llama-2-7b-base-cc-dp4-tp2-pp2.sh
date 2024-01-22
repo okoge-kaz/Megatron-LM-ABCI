@@ -1,8 +1,8 @@
 #!/bin/bash
 #$ -l rt_AF=4
-#$ -l h_rt=3:00:00:00
+#$ -l h_rt=10:00:00:00
 #$ -j y
-#$ -o outputs/llama-2-7b-base/4node/
+#$ -o outputs/llama-2-7b-base/16node/
 #$ -cwd
 
 # module load
@@ -59,8 +59,7 @@ DATA_PARALLEL_SIZE=$((${NUM_GPUS} / (${TENSOR_PARALLEL_SIZE} * ${PIPELINE_PARALL
 # training config
 MICRO_BATCH_SIZE=1
 GLOBAL_BATCH_SIZE=1024
-TRAIN_STEPS=25000 # e.g. llama: 1T tokens / 4M tokens_per_batch = 250000 steps
-# 今回は約100B Tokensなので 1/10
+TRAIN_STEPS=55000
 
 LR=1e-4
 MIN_LR=3.3e-6
@@ -76,32 +75,32 @@ CHECKPOINT_SAVE_DIR=/groups/gaf51275/llama/checkpoints/Llama-2-7b-base-extended-
 mkdir -p ${CHECKPOINT_SAVE_DIR}
 
 # data config
-DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_1500_okazaki_lab_cc_nfkc_16k_aligned_8
+DATASET_DIR=/bb/llm/gaf51275/llama/datasets/okazaki_lab_cc_2100_okazaki_lab_cc_nfkc_16k_aligned_8
 
 DATA_PATH=""
 
 # ja okazaki lab common crawl
-DATA_PATH="${DATA_PATH} 9344955862 ${DATASET_DIR}/split_0_text_document"
-DATA_PATH="${DATA_PATH} 9387405706 ${DATASET_DIR}/split_1_text_document"
-DATA_PATH="${DATA_PATH} 10614722501 ${DATASET_DIR}/split_2_text_document"
-DATA_PATH="${DATA_PATH} 10774826633 ${DATASET_DIR}/split_3_text_document"
-DATA_PATH="${DATA_PATH} 10525668913 ${DATASET_DIR}/split_4_text_document"
-DATA_PATH="${DATA_PATH} 9502019045 ${DATASET_DIR}/split_5_text_document"
-DATA_PATH="${DATA_PATH} 8784459147 ${DATASET_DIR}/split_6_text_document"
-DATA_PATH="${DATA_PATH} 9826112028 ${DATASET_DIR}/split_7_text_document"
-DATA_PATH="${DATA_PATH} 9152375731 ${DATASET_DIR}/split_8_text_document"
-DATA_PATH="${DATA_PATH} 9891239743 ${DATASET_DIR}/split_9_text_document"
-DATA_PATH="${DATA_PATH} 9341639254 ${DATASET_DIR}/split_10_text_document"
-DATA_PATH="${DATA_PATH} 9702056537 ${DATASET_DIR}/split_11_text_document"
-DATA_PATH="${DATA_PATH} 9047625381 ${DATASET_DIR}/split_12_text_document"
-DATA_PATH="${DATA_PATH} 9059299870 ${DATASET_DIR}/split_13_text_document"
-DATA_PATH="${DATA_PATH} 8623585025 ${DATASET_DIR}/split_14_text_document"
-DATA_PATH="${DATA_PATH} 11360430162 ${DATASET_DIR}/split_15_text_document"
-DATA_PATH="${DATA_PATH} 10562828472 ${DATASET_DIR}/split_16_text_document"
-DATA_PATH="${DATA_PATH} 9116094403 ${DATASET_DIR}/split_17_text_document"
-DATA_PATH="${DATA_PATH} 9932843686 ${DATASET_DIR}/split_18_text_document"
-DATA_PATH="${DATA_PATH} 11097404819 ${DATASET_DIR}/split_19_text_document"
-DATA_PATH="${DATA_PATH} 9224853685 ${DATASET_DIR}/split_20_text_document"
+DATA_PATH="${DATA_PATH} 9344955862 ${DATASET_DIR}/merged_0_text_document"
+DATA_PATH="${DATA_PATH} 9387405706 ${DATASET_DIR}/merged_1_text_document"
+DATA_PATH="${DATA_PATH} 10614722501 ${DATASET_DIR}/merged_2_text_document"
+DATA_PATH="${DATA_PATH} 10774826633 ${DATASET_DIR}/merged_3_text_document"
+DATA_PATH="${DATA_PATH} 10525668913 ${DATASET_DIR}/merged_4_text_document"
+DATA_PATH="${DATA_PATH} 9502019045 ${DATASET_DIR}/merged_5_text_document"
+DATA_PATH="${DATA_PATH} 8784459147 ${DATASET_DIR}/merged_6_text_document"
+DATA_PATH="${DATA_PATH} 9826112028 ${DATASET_DIR}/merged_7_text_document"
+DATA_PATH="${DATA_PATH} 9152375731 ${DATASET_DIR}/merged_8_text_document"
+DATA_PATH="${DATA_PATH} 9891239743 ${DATASET_DIR}/merged_9_text_document"
+DATA_PATH="${DATA_PATH} 9341639254 ${DATASET_DIR}/merged_10_text_document"
+DATA_PATH="${DATA_PATH} 9702056537 ${DATASET_DIR}/merged_11_text_document"
+DATA_PATH="${DATA_PATH} 9047625381 ${DATASET_DIR}/merged_12_text_document"
+DATA_PATH="${DATA_PATH} 9059299870 ${DATASET_DIR}/merged_13_text_document"
+DATA_PATH="${DATA_PATH} 8623585025 ${DATASET_DIR}/merged_14_text_document"
+DATA_PATH="${DATA_PATH} 11360430162 ${DATASET_DIR}/merged_15_text_document"
+DATA_PATH="${DATA_PATH} 10562828472 ${DATASET_DIR}/merged_16_text_document"
+DATA_PATH="${DATA_PATH} 9116094403 ${DATASET_DIR}/merged_17_text_document"
+DATA_PATH="${DATA_PATH} 9932843686 ${DATASET_DIR}/merged_18_text_document"
+DATA_PATH="${DATA_PATH} 11097404819 ${DATASET_DIR}/merged_19_text_document"
+DATA_PATH="${DATA_PATH} 9224853685 ${DATASET_DIR}/merged_20_text_document"
 
 # ja wikipedia
 DATA_PATH="${DATA_PATH} 1672543873 ${DATASET_DIR}/ja_wiki_merged_train_text_document"
