@@ -15,27 +15,26 @@ module load nccl/2.16/2.16.2-1
 module load hpcx/2.12
 
 # python virtualenv
-cd /bb/llm/gaf51275/llama/Megatron-LM
 source .env/bin/activate
 
 # distributed settings
 TARGET_TENSOR_PARALLEL_SIZE=1   # fixed
 TARGET_PIPELINE_PARALLEL_SIZE=1 # fixed
 
-BASE_TENSOR_PARALLEL_SIZE=2  # Llama-2 7B extended
-BASE_PIPELINE_PARALLEL_SIZE=2  # Llama-2 7B extended
+BASE_TENSOR_PARALLEL_SIZE=2  # Llama-2 13B
+BASE_PIPELINE_PARALLEL_SIZE=8  # Llama-2 13B
 
 # model config
-BASE_CHECKPOINT_DIR=/groups/gaf51275/llama/checkpoints/Llama-2-7b-base-extended-scaling/okazaki_lab_cc//tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
-TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-7b-base-extended-scaling/okazaki_lab_cc/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
+BASE_CHECKPOINT_DIR=/groups/gaf51275/llama/checkpoints/llama-2-13b-base-megatron/okazaki_lab_cc/tp${BASE_TENSOR_PARALLEL_SIZE}-pp${BASE_PIPELINE_PARALLEL_SIZE}
+TARGET_CHECKPOINT_DIR=/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-13b-base-cc/tp${TARGET_TENSOR_PARALLEL_SIZE}-pp${TARGET_PIPELINE_PARALLEL_SIZE}
 
 mkdir -p ${TARGET_CHECKPOINT_DIR}
 
 # tokenizer config
-TOKENIZER_MODEL=/bb/llm/gaf51275/jalm/jalm-tokenizer-private/tokenizer/jalm_llama_okazaki_lab_cc_nfkc_16k_aligned_8/merged_tokenizer_sp/jalm_llama.model
+TOKENIZER_MODEL=/bb/llm/gaf51275/llama/huggingface-checkpoint/Llama-2-13b-hf/tokenizer.model
 
 # change latest_checkpointed_iteration.txt
-ITERATION=50000
+ITERATION=25000
 echo $ITERATION >${BASE_CHECKPOINT_DIR}/latest_checkpointed_iteration.txt
 
 # convert
