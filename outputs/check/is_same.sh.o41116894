@@ -1,0 +1,8 @@
+Different: args
+Different: iteration
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/checkpoint_check/is_same.py", line 33, in <module>
+    if not compare_values(checkpoint_1[key], checkpoint_2[key]):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/checkpoint_check/is_same.py", line 21, in compare_values
+    return value1 == value2
+RuntimeError: Boolean value of Tensor with more than one value is ambiguous

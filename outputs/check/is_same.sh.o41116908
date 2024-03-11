@@ -1,0 +1,10 @@
+Different in Namespace 'args': load = /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-13b-extended/okazaki_lab_cc/tp2-pp4 vs /bb/llm/gaf51275/llama/checkpoints/llama-2-13b-base-extended-megatron/llm-jp/tp2-pp4
+Different: args
+Different Value: iteration, Values: 5000 vs 15000
+Different: iteration
+Different: model
+Different Value: optimizer, Values: 9.352549241433309e-05 vs 3.9142212621234644e-05
+Different: optimizer
+Different Value: opt_param_scheduler, Values: 5118976 vs 15358976
+Different: opt_param_scheduler
+Different: rng_state

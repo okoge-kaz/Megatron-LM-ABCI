@@ -1,0 +1,10 @@
+latest checkpoint: 25000
+DEBUG: possible_state_paths: ['/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-7b-base-extended-en-updated/okazaki_lab_cc/tp1-pp1/iter_0025000']
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/megatron_to_hf/llama_checkpoint_conversion.py", line 932, in <module>
+    main()
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/megatron_to_hf/llama_checkpoint_conversion.py", line 926, in main
+    convert_checkpoint_from_megatron_to_transformers(args)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/megatron_to_hf/llama_checkpoint_conversion.py", line 387, in convert_checkpoint_from_megatron_to_transformers
+    assert state_path is not None, f"Cannot find state path in {possible_state_paths}"
+AssertionError: Cannot find state path in ['/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-7b-base-extended-en-updated/okazaki_lab_cc/tp1-pp1/iter_0025000']

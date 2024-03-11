@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/checkpoint_check/is_same.py", line 25, in <module>
+    if not torch.equal(checkpoint_1[key], checkpoint_2[key]):
+TypeError: equal(): argument 'input' (position 1) must be Tensor, not Namespace

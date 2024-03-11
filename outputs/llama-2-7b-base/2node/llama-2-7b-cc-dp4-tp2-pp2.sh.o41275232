@@ -1,0 +1,446 @@
+MASTER_ADDR=10.0.54.4
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+checkpoint path: /bb/llm/gaf51275/llama/llama-megatron-convert-checkpoint-hf/Llama-2-7b/tp2-pp2, iteration: 1
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+using world size: 16, data-parallel-size: 4, tensor-model-parallel size: 2, pipeline-model-parallel size: 2 
+WARNING: overriding default arguments for tokenizer_type:GPT2BPETokenizer                        with tokenizer_type:Llama2Tokenizer
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    assert args.pipeline_model_parallel_size > 2, \
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+    assert args.pipeline_model_parallel_size > 2, \
+    assert args.pipeline_model_parallel_size > 2, \
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Setting num_query_groups to 32 from checkpoint
+Setting group_query_attention to True from checkpoint
+Setting kv_channels to 128 from checkpoint
+Setting position_embedding_type to rope from checkpoint
+Setting add_position_embedding to False from checkpoint
+Setting use_rotary_position_embeddings to True from checkpoint
+Setting rotary_percent to 1.0 from checkpoint
+Setting add_bias_linear to False from checkpoint
+Setting swiglu to True from checkpoint
+Setting untie_embeddings_and_output_weights to True from checkpoint
+Setting apply_layernorm_1p to False from checkpoint
+Setting normalization to RMSNorm from checkpoint
+Setting padded_vocab_size to 32000 from checkpoint
+Setting tensor_model_parallel_size to 2 from checkpoint
+Setting pipeline_model_parallel_size to 2 from checkpoint
+Checkpoint did not provide arguments virtual_pipeline_model_parallel_size
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/pretrain_gpt.py", line 132, in <module>
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    pretrain(train_valid_test_datasets_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/training.py", line 92, in pretrain
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    initialize_megatron(extra_args_provider=extra_args_provider,
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/initialize.py", line 51, in initialize_megatron
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    validate_args(args, args_defaults)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/megatron/arguments.py", line 154, in validate_args
+    assert args.pipeline_model_parallel_size > 2, \
+    assert args.pipeline_model_parallel_size > 2, \
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+    assert args.pipeline_model_parallel_size > 2, \
+AssertionError: pipeline-model-parallel size should be greater than 2 with interleaved schedule
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[41433,1],6]
+  Exit code:    1
+--------------------------------------------------------------------------

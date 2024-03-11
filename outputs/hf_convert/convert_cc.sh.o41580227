@@ -1,0 +1,19 @@
+latest checkpoint: 5000
+DEBUG: possible_state_paths: ['/bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-13b-base-cc/tp1-pp1/iter_0005000']
+Loading Megatron-LM checkpoint arguments from: /bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-13b-base-cc/tp1-pp1/iter_0005000
+Loading Megatron-LM checkpoint arguments from: /bb/llm/gaf51275/llama/from_megatron_hf_checkpoints/megatron_checkpoints/Llama2-13b-base-cc/tp1-pp1/iter_0005000/mp_rank_00/model_optim_rng.pt
+Converting
+Converting embeddings
+Converting transformer layers
+Converting pipeline parallel rank 0
+DEBUG: key:layers.0.self_attention.query_key_value.weight, params: torch.Size([15360, 5120])
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/megatron_to_hf/llama_checkpoint_conversion.py", line 636, in <module>
+    main()
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/megatron_to_hf/llama_checkpoint_conversion.py", line 630, in main
+    convert_checkpoint_from_megatron_to_transformers(args)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/megatron_to_hf/llama_checkpoint_conversion.py", line 527, in convert_checkpoint_from_megatron_to_transformers
+    wq, wk, wv = convert_wqkv(
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/megatron_to_hf/llama_checkpoint_conversion.py", line 336, in convert_wqkv
+    assert len(qkv_w) == 0
+AssertionError

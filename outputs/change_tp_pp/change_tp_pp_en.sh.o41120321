@@ -1,0 +1,9 @@
+Loaded loader_megatron as the loader.
+Loaded saver_megatron as the saver.
+Starting saver...
+Starting loader...
+checkpoint path: /bb/llm/gaf51275/llama/checkpoints/Llama-2-7b-base-extended/okazaki_lab_cc-en-updated/tp2-pp2, iteration: 25000
+could not load the checkpoint
+checkpoint name: (None, None)
+'tuple' object has no attribute 'seek'. You can only torch.load from a file that is seekable. Please pre-load the data into a buffer like io.BytesIO and try to load from it instead.
+Loader exited, exiting saver

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/scripts/abci/checkpoint_check/is_same.py", line 10, in <module>
+    checkpoint_1 = torch.load(args.model_path_1, map_location="cpu")
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/.env/lib/python3.10/site-packages/torch/serialization.py", line 809, in load
+    return _load(opened_zipfile, map_location, pickle_module, **pickle_load_args)
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/.env/lib/python3.10/site-packages/torch/serialization.py", line 1172, in _load
+    result = unpickler.load()
+  File "/bb/1/llm/gaf51275/llama/Megatron-LM/.env/lib/python3.10/site-packages/torch/serialization.py", line 1165, in find_class
+    return super().find_class(mod_name, name)
+ModuleNotFoundError: No module named 'megatron'
