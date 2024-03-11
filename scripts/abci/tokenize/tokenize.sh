@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l rt_AF=1
+#$ -l rt_F=1
 #$ -l h_rt=15:00:00
 #$ -j y
 #$ -o outputs/tokenize/
@@ -24,23 +24,12 @@ TOKENIZER_MODEL=/bb/llm/gaf51275/llama/huggingface-checkpoint/Llama-2-7b-hf/toke
 mkdir -p ${OUTPUT_DIR}
 
 # tokenize
-INPUT_FILE=${DATASET_DIR}/default_plain_text_format.jsonl
+INPUT_FILE=${DATASET_DIR}/default_instruction_following_format.jsonl
 
 python tools/preprocess_data.py \
   --input ${INPUT_FILE} \
-  --output-prefix ${OUTPUT_DIR}/default_plain_text_format \
+  --output-prefix ${OUTPUT_DIR}/default_instruction_following_format \
   --tokenizer-type Llama2Tokenizer \
   --tokenizer-model ${TOKENIZER_MODEL} \
-  --append-eod \
-  --workers 64
-
-# tokenize
-INPUT_FILE=${DATASET_DIR}/highquality_plain_text_format.jsonl
-
-python tools/preprocess_data.py \
-  --input ${INPUT_FILE} \
-  --output-prefix ${OUTPUT_DIR}/highquality_plain_text_format \
-  --tokenizer-type Llama2Tokenizer \
-  --tokenizer-model ${TOKENIZER_MODEL} \
-  --append-eod \
-  --workers 64
+  --workers 64 \
+  --json-keys "output"

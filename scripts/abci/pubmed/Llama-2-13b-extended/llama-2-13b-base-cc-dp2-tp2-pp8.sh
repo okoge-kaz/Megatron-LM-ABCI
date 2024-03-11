@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -l rt_AF=4
-#$ -l h_rt=4:00:00:00
+#$ -l h_rt=3:00:00:00
 #$ -j y
 #$ -o outputs/pubmed/13b/
 #$ -cwd
